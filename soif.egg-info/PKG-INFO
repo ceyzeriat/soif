@@ -1,0 +1,28 @@
+Metadata-Version: 1.1
+Name: soif
+Version: 1.0
+Summary: Optical Interferometry Fitting
+Home-page: https://github.com/ceyzeriat/soif/
+Author: Guillaume Schworer
+Author-email: guillaume.schworer@obspm.fr
+License: GNU
+Download-URL: https://github.com/ceyzeriat/soif/tree/master/dist
+Description: 
+        
+        Changelog
+        ---------
+        
+        1.0.0 (2016-05-03)
+        ++++++++++++++++++
+        
+        - Initial release.
+Keywords: astronomy,interferometry,data,processing,reduction,model,fitting,optical
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: Astronomy

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import argv, exit
+import re, os
 
 if "upl" in argv[1:]:
     import os
@@ -16,15 +17,8 @@ except ImportError:
     from distutils.core import setup
     setup
 
-def rd(filename):
-    f = open(filename)
-    r = f.read()
-    f.close()
-    return r
-
-vre = re.compile("__version__ = \"(.*?)\"")
-m = rd(os.path.join(os.path.dirname(os.path.abspath(__file__)), "soif", "_version.py"))
-version = vre.findall(m)[0]
+m = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "soif", "_version.py")).read()
+version = re.findall(r"__version__ *= *\"(.*?)\"", m)[0]
 
 
 setup(
@@ -34,12 +28,12 @@ setup(
     author_email="guillaume.schworer@obspm.fr",
     packages=["soif"],
     url="https://github.com/ceyzeriat/soif/",
-    license="GNU",
-    description="Optical Interferometry Fitting",
-    long_description=rd("README.rst") + "\n\n"
+    license="GNU General Public License v3 or later (GPLv3+)",
+    description="Software for Optical Interferometry Fitting",
+    long_description=open("README.rst").read() + "\n\n"
                     + "Changelog\n"
                     + "---------\n\n"
-                    + rd("HISTORY.rst"),
+                    + open("HISTORY.rst").read(),
     package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,
     install_requires=["numpy","emcee","corner","patiencebar","MCres"],

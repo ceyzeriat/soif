@@ -1,0 +1,5 @@
+numpy
+emcee
+corner
+patiencebar
+MCres
