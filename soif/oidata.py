@@ -139,7 +139,7 @@ class Oigrab(object):
         Returns: VIS2, T3, VIS indeces as a tuple of 3 lists
         """
         hdus = _pf.open(self.src)
-        mjd = [float(mjd[0] if mjd[0] is not None else -np.inf), float(mjd[1] if mjd[1] is not None else np.inf)]
+        mjd = [float(mjd[0] if mjd[0] is not None else -_np.inf), float(mjd[1] if mjd[1] is not None else _np.inf)]
         datayouwant = {'data':{'VIS2':bool(vis2), 'T3PHI':bool(t3phi), 'T3AMP':bool(t3amp), 'VISPHI':bool(visphi), 'VISAMP':bool(visamp)}}
         for idx, item in enumerate(hdus):
             if _core.aslist(hduNums) != [] and idx not in _core.aslist(hduNums): continue
@@ -213,8 +213,8 @@ class Oidata(OidataEmpty):
         
         self._has = True
         self._useit = True
-        wlindices = slice(0, 10000000) if wlindices == [] else np.asarray(wlindices).ravel()
-        indices = slice(0, 10000000) if indices == [] else np.asarray(indices).ravel()
+        wlindices = slice(0, 10000000) if wlindices == [] else _np.asarray(wlindices).ravel()
+        indices = slice(0, 10000000) if indices == [] else _np.asarray(indices).ravel()
 
         # attributes to be copy-pasted
         for key, vl in _core.ATTRDATATYPE[self.datatype].items():
@@ -266,7 +266,7 @@ class Oidata(OidataEmpty):
             self.update()
 
     def _info(self):
-        return "%s data, shape: %s, wl: %s%s" % (self.datatype, _core.maskedshape(self.shapedata, np.logical_not(self.mask).sum()), self._wlmin, (" to "+str(self._wlmax))*int(self._wlspan!=0))
+        return "%s data, shape: %s, wl: %s%s" % (self.datatype, _core.maskedshape(self.shapedata, _np.logical_not(self.mask).sum()), self._wlmin, (" to "+str(self._wlmax))*int(self._wlspan!=0))
     
     @property
     def data(self):
@@ -293,7 +293,7 @@ class Oidata(OidataEmpty):
         return self._mask
     @mask.setter
     def mask(self, value):
-        value = np.asarray(value, dtype=bool)
+        value = _np.asarray(value, dtype=bool)
         if value.shape != self._data.shape:
             if _exc.raiseIt(_exc.BadMaskShape, self.raiseError, shape=str(self.data.shape)): return False
         self._use_mask = not value.all()
@@ -464,9 +464,9 @@ class Oifits(object):
         if not hduwlidx:
             if _exc.raiseIt(_exc.NoWavelengthTable, self.raiseError, src=src): return
         # get wl sorted
-        wl = [float(wl[0] if wl[0] is not None else -np.inf), float(wl[1] if wl[1] is not None else np.inf)]
+        wl = [float(wl[0] if wl[0] is not None else -_np.inf), float(wl[1] if wl[1] is not None else _np.inf)]
         allwl = hdus[hduwlidx].data[_core.KEYSWL['wl']]
-        wlindices = np.arange(allwl.size)[((allwl>=wl[0]) & (allwl<wl[1]))]
+        wlindices = _np.arange(allwl.size)[((allwl>=wl[0]) & (allwl<wl[1]))]
         # for each datafilter
         whichdata = datafilter.get('data', {'data':{'VIS2':True, 'T3PHI':True, 'T3AMP':True, 'VISPHI':True, 'VISAMP':True}})
         for idx, indices in datafilter.items():
@@ -501,7 +501,7 @@ class Oifits(object):
             if getattr(self, key): getattr(self, key).update()
 
         funkydtypeint = [('u', int), ('v', int), ('wl', int)]
-        funkydtype = [('u', np.float32), ('v', np.float32), ('wl', np.float32)]
+        funkydtype = [('u', _np.float32), ('v', _np.float32), ('wl', _np.float32)]
 
         # get uvwl sets as integer to extract uniques
         unique_uvwl = _np.zeros(0, dtype=funkydtypeint)
@@ -555,7 +555,7 @@ class Oifits(object):
                     dum[thedata._ind == v] = i
                 thedata._ind = dum.copy()
         # prepare pre-processed uniques
-        self.uvwl = {'u':unique_uvwl['u'], 'v':unique_uvwl['v'], 'wl':unique_uvwl['wl'], 'blwl':np.hypot(unique_uvwl['u'], unique_uvwl['v'])/unique_uvwl['wl']}
+        self.uvwl = {'u':unique_uvwl['u'], 'v':unique_uvwl['v'], 'wl':unique_uvwl['wl'], 'blwl':_np.hypot(unique_uvwl['u'], unique_uvwl['v'])/unique_uvwl['wl']}
 
     @property
     def systematic_fit(self):
@@ -590,7 +590,7 @@ class Oifits(object):
                     dum = _core.FCTVISCOMP[key.upper()](dum)
                     ret.append(dum)
         return ret
-        
+
 
     def save(self, filename, append=False, clobber=False):
         ext = '.oif.fits'

@@ -42,7 +42,7 @@ setup(
                     + rd("HISTORY.rst"),
     package_data={"": ["LICENSE", "AUTHORS.rst"]},
     include_package_data=True,
-    install_requires=["numpy","emcee","corner"],
+    install_requires=["numpy","emcee","corner","patiencebar","MCres"],
     download_url = 'https://github.com/ceyzeriat/soif/tree/master/dist',
     keywords = ['astronomy','interferometry','data','processing','reduction','model','fitting','optical'],
     classifiers=[
