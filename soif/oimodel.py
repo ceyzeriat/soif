@@ -454,7 +454,7 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             vis2, t3phi, t3amp, visphi, visamp = model.compVis(params=params)
     if model.oidata.vis2:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.vis2.err*model.oidata.vis2.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.vis2.error*model.oidata.vis2.error + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
             invvar = model.oidata.vis2._invvar
         if chi2:
@@ -463,7 +463,7 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             quality += ((model.oidata.vis2.data - vis2)**2*invvar - _np.log(invvar)).sum()
     if model.oidata.visphi:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.visphi.err*model.oidata.visphi.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.visphi.error*model.oidata.visphi.error + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
             invvar = model.oidata.visphi._invvar
         if chi2:
@@ -472,7 +472,7 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             quality += ((model.oidata.visphi.data - visphi)**2*invvar - _np.log(invvar)).sum()
     if model.oidata.visamp:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.visamp.err*model.oidata.visamp.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.visamp.error*model.oidata.visamp.error + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
             invvar = model.oidata.visamp._invvar
         if chi2:
@@ -481,7 +481,7 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             quality += ((model.oidata.visamp.data - visamp)**2*invvar - _np.log(invvar)).sum()
     if model.oidata.t3phi:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.t3phi.err*model.oidata.t3phi.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.t3phi.error*model.oidata.t3phi.error + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
             invvar = model.oidata.t3phi._invvar
         if chi2:
@@ -490,7 +490,7 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             quality += ((model.oidata.t3phi.data - t3phi)**2*invvar - _np.log(invvar)).sum()
     if model.oidata.t3amp:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.t3amp.err*model.oidata.t3amp.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.t3amp.error*model.oidata.t3amp.error + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
             invvar = model.oidata.t3amp._invvar
         if chi2:

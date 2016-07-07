@@ -243,7 +243,7 @@ class Oidata(OidataEmpty):
             setattr(self, "_"+key, _core.replicate(getattr(self, "_"+key), (self._datasize, None)))
 
         # combine the UV coordinates of T3
-        if self.is_T3:
+        if self.is_t3:
             self._u = _np.concatenate((_np.expand_dims(self._u1, -1), _np.expand_dims(self._u2, -1), _np.expand_dims(-self._u1-self._u2, -1)), axis=-1)
             self._v = _np.concatenate((_np.expand_dims(self._v1, -1), _np.expand_dims(self._v2, -1), _np.expand_dims(-self._v1-self._v2, -1)), axis=-1)
             # delete temporary attributes
@@ -361,11 +361,11 @@ class Oidata(OidataEmpty):
         _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="is_angle")
 
     @property
-    def is_T3(self):
-        return self._is_T3
-    @is_T3.setter
-    def is_T3(self, value):
-        _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="is_T3")
+    def is_t3(self):
+        return self._is_t3
+    @is_t3.setter
+    def is_t3(self, value):
+        _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="is_t3")
 
     @property
     def flat(self):
@@ -375,7 +375,7 @@ class Oidata(OidataEmpty):
         _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="flat")
 
     def flatten(self, **kwargs):
-        if self.is_T3:
+        if self.is_t3:
             for key in _core.KEYSUV:
                 setattr(self, "_"+key, getattr(self, "_"+key).reshape((-1, 3)))
             for key in _core.KEYSDATA:
@@ -522,23 +522,22 @@ class Oifits(object):
             uvwlind = _np.unique((unique_uvwl['u']+1j*unique_uvwl['v'])/unique_uvwl['wl'], return_index=True)[1]
         else:
             uvwlind = _np.unique(unique_uvwl, return_index=True)[1]
-
+        # get uvwl sets as floats for calculations
         unique_uvwl = _np.zeros(0, dtype=funkydtype)
         for key in _core.DATAKEYSLOWER:
             thedata = getattr(self, key)
             if thedata:
-                # get uvwl sets as integer to extract uniques
                 dum = _np.zeros(thedata.shapeuv, dtype=funkydtype)
                 dum['u'] = _core.round_fig(x=thedata.u, n=thedata.significant_figures)
                 dum['v'] = _core.round_fig(x=thedata.v, n=thedata.significant_figures)
                 dum['wl'] = _core.round_fig(x=thedata.wl, n=thedata.significant_figures)
-                # save the phase symmetry
-                if thedata.is_angle:
-                    thedata._phasesign = ((_np.arctan2(dum['v'], dum['u'])%(_core.DEUXPI)<_np.pi)*2-1).astype(_np.int8)
-                # deal with symmetry
+                # simplify symmetry
                 inv = (dum['u']<0)
                 dum['u'][inv] *= -1
                 dum['v'][inv] *= -1
+                # save the phase symmetry
+                if thedata.is_angle:
+                    thedata._phasesign = 1-inv*2
                 # stack
                 unique_uvwl = _np.hstack((unique_uvwl, dum.flatten()))
                 thedata._ind = dum.copy()
@@ -577,18 +576,24 @@ class Oifits(object):
         for key in _core.DATAKEYSLOWER:
             thedata = getattr(self, key)
             if thedata:
-                if isinstance(viscomp, (tuple, list)):
-                    dum = viscomp[0][thedata._ind]
-                    if thedata.is_angle: dum *= self._phasesign
-                    if thedata.is_t3: dum = dum.prod(-1)
-                    dum = _core.FCTVISCOMP[key.upper()](dum)
-                    ret.append((dum, viscomp[1][thedata._ind]))
+                retdbl = isinstance(viscomp, (tuple, list))
+                if retdbl:
+                    viscomp, flx = viscomp
+                if thedata.is_t3:
+                    if thedata.is_angle: # t3phi
+                        dum = (_core.FCTVISCOMP[key.upper()](viscomp)[thedata._ind]*thedata._phasesign).sum(-1)
+                    else: # t3amp
+                        dum = (_core.FCTVISCOMP[key.upper()](viscomp[thedata._ind])).prod(-1)
                 else:
-                    dum = viscomp[thedata._ind]
-                    if thedata.is_angle: dum *= self._phasesign
-                    if thedata.is_t3: dum = dum.prod(-1)
-                    dum = _core.FCTVISCOMP[key.upper()](dum)
+                    dum = _core.FCTVISCOMP[key.upper()](viscomp)[thedata._ind]
+                    if thedata.is_angle: # visphi
+                        dum *= thedata._phasesign
+                if retdbl:
+                    ret.append((dum, flx[thedata._ind]))
+                else:
                     ret.append(dum)
+            else:
+                ret.append(None)
         return ret
 
 

@@ -56,7 +56,7 @@ class Oimainobject(object):
                 found = True
                 setattr(self, item, float(priors[item]))
                 setattr(self, "_"+item, float(priors[item]))
-            if item in priors.keys():
+            if item in bounds.keys():
                 found = True
                 if len(bounds[item])<2: # error if less than 2 bounds
                     raise Exception("Bounds for object '%s', parameter '%s' has only one bound: %s." % (name, item, str(bounds[item])))

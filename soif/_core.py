@@ -55,11 +55,11 @@ UVKEYSDATATYPE = {  'T3AMP':{'u1':'U1COORD', 'v1':'V1COORD', 'u2':'U2COORD', 'v2
                     'VISPHI':{'u':'UCOORD', 'v':'VCOORD'},
                     'VISAMP':{'u':'UCOORD', 'v':'VCOORD'}
                     }
-ATTRDATATYPE = {'T3AMP':{'is_T3':True, 'is_angle':False},
-                'T3PHI':{'is_T3':True, 'is_angle':True},
-                'VIS2':{'is_T3':False, 'is_angle':False},
-                'VISPHI':{'is_T3':False, 'is_angle':True},
-                'VISAMP':{'is_T3':False, 'is_angle':False}
+ATTRDATATYPE = {'T3AMP':{'is_t3':True, 'is_angle':False},
+                'T3PHI':{'is_t3':True, 'is_angle':True},
+                'VIS2':{'is_t3':False, 'is_angle':False},
+                'VISPHI':{'is_t3':False, 'is_angle':True},
+                'VISAMP':{'is_t3':False, 'is_angle':False}
                 }
 DATAKEYSLOWER = ['vis2', 't3phi', 't3amp', 'visphi', 'visamp']
 
