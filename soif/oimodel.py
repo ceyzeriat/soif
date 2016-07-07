@@ -173,15 +173,7 @@ class Oimodel(object):
         print('Khi-2 NULL: %.3f' % self.likelihood(params=params, customlike=customlike, chi2=True, null=True, **kwargs))
         print('ln-like: %.3f' % self.likelihood(params=params, customlike=customlike, chi2=False, **kwargs))
         print('ln-like NULL: %.3f' % self.likelihood(params=params, customlike=customlike, chi2=False, null=True, **kwargs))
-        if self.oidata._hast3phi: print('Dof T3PHI: %i' % self.oidata.t3phidof)
-        if self.oidata._hast3amp: print('Dof T3AMP: %i' % elf.oidata.t3ampdof)
-        if self.oidata._hasvis2: print('Dof VIS2: %i' % self.oidata.vis2dof)
-        if self.oidata._hasvisphi: print('Dof VISPHI: %i' % self.oidata.visphidof)
-        if self.oidata._hasvisamp: print('Dof VISAMP: %i' % self.oidata.visampdof)
-        totaldof = getattr(self.oidata, 't3phidof', 0)+getattr(self.oidata, 't3ampdof', 0)+getattr(self.oidata, 'vis2dof', 0)+getattr(self.oidata, 'visphidof', 0)+getattr(self.oidata, 'visampdof', 0)
-        print('Total dof: %i' % totaldof)
         print('Number of parameters (k): %i' % self._nparamsObj)
-        print('Reduced chi2: %.3f' % (chi2/(totaldof-self._nparamsObj-1)))
 
 
     def setParams(self, params, priors=False):
@@ -324,21 +316,20 @@ class Oimodel(object):
         if ret: return toplot
 
     def residual(self, params, c=None, cmap='jet', cm_min=None, cm_max=None, datatype='All'):
-        allmodes = ['vis2', 't3phi', 't3amp', 'visphi', 'visamp']
         calcindex = {'vis2':0, 't3phi':1, 't3amp':2, 'visphi':3, 'visamp':4}
         fullmodel = self.compVis(params=params)
         cm_min_orig = cm_min
         cm_max_orig = cm_max
         if datatype.lower() == 'all':
-            datatype = allmodes
+            datatype = _core.DATAKEYSLOWER
         elif _np.iterable(datatype)==1 and not isinstance(datatype, str):
-            datatype = [str(dum).lower() for dum in datatype if dum.lower() in allmodes]
+            datatype = [str(dum).lower() for dum in datatype if dum.lower() in _core.DATAKEYSLOWER]
         else:
-            datatype = [str(dum).lower() for dum in [str(datatype)] if dum.lower() in allmodes]
+            datatype = [str(dum).lower() for dum in [str(datatype)] if dum.lower() in _core.DATAKEYSLOWER]
         if self.oidata.systematic_fit: self.oidata.systematic_prior = params[self._nparamsObj]
         for index, datatypeloop in enumerate(datatype):
-            if not getattr(self.oidata, '_has'+datatypeloop, False): continue
-            data = getattr(self.oidata, datatypeloop)
+            if not getattr(self.oidata, datatypeloop): continue
+            data = getattr(self.oidata, datatypeloop).data
             model = fullmodel[calcindex[datatypeloop]]
             error = getattr(self.oidata, datatypeloop+'err')
             if self.oidata.systematic_fit: error = _np.sqrt(error*error + self.oidata.systematic_prior*self.oidata.systematic_prior)
@@ -359,9 +350,9 @@ class Oimodel(object):
                 thecb = thefig.add_subplot(grid[:,20])
                 thecb.set_xticklabels('')
                 thecb.yaxis.tick_right()
-                colorkeyattr = datatypeloop+str(c)
-                if not hasattr(self.oidata, colorkeyattr): colorkeyattr = datatypeloop+'wl'
-                colorattr = getattr(self.oidata, colorkeyattr)
+                colorkeyattr = str(c)
+                if not hasattr(getattr(self.oidata, datatypeloop), colorkeyattr): colorkeyattr = 'wl'
+                colorattr = getattr(getattr(self.oidata, datatypeloop), colorkeyattr)
                 #if datatypeloop[:2]=='t3':
                 #    if colorattr.shape != self.oidata._t3outputshape:
                 #        colorattr = colorattr.mean(axis=-1)
@@ -404,7 +395,7 @@ class Oimodel(object):
         allmodes = ['vis2', 't3phi', 't3amp', 'visphi', 'visamp']
         for mode in allmodes:
             number = []
-            if getattr(self.oidata, "_has"+mode):
+            if getattr(self.oidata, mode):
                 number = [len(i) for i in getattr(self.oidata, "_input_"+mode) if i is not None]
             hdu.header.set('N'+mode, int(_np.sum(number)), comment='Total number of '+mode+' measurements')
             hdu.header.set('F_'+mode, len(number), comment='Number of '+mode+' files')
@@ -461,51 +452,51 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             vis2, t3phi, t3amp, visphi, visamp = 1., 0., 1., 0., 1.
         else:
             vis2, t3phi, t3amp, visphi, visamp = model.compVis(params=params)
-    if model.oidata._hasvis2:
+    if model.oidata.vis2:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.vis2err*model.oidata.vis2err + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.vis2.err*model.oidata.vis2.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
-            invvar = model.oidata._vis2_invvar
+            invvar = model.oidata.vis2._invvar
         if chi2:
-            quality += ((model.oidata.vis2 - vis2)**2*invvar).sum()
+            quality += ((model.oidata.vis2.data - vis2)**2*invvar).sum()
         else:
-            quality += ((model.oidata.vis2 - vis2)**2*invvar - _np.log(invvar)).sum()# - _core.LNDEUXPI*model.oidata.vis2.size
-    if model.oidata._hasvisphi:
+            quality += ((model.oidata.vis2.data - vis2)**2*invvar - _np.log(invvar)).sum()
+    if model.oidata.visphi:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.visphierr*model.oidata.visphierr + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.visphi.err*model.oidata.visphi.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
-            invvar = model.oidata._visphi_invvar
+            invvar = model.oidata.visphi._invvar
         if chi2:
-            quality += ((model.oidata.visphi - visphi)**2*invvar).sum()
+            quality += ((model.oidata.visphi.data - visphi)**2*invvar).sum()
         else:
-            quality += ((model.oidata.visphi - visphi)**2*invvar - _np.log(invvar)).sum()# - _core.LNDEUXPI*model.oidata.visphi.size
-    if model.oidata._hasvisamp:
+            quality += ((model.oidata.visphi.data - visphi)**2*invvar - _np.log(invvar)).sum()
+    if model.oidata.visamp:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.visamperr*model.oidata.visamperr + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.visamp.err*model.oidata.visamp.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
-            invvar = model.oidata._visamp_invvar
+            invvar = model.oidata.visamp._invvar
         if chi2:
-            quality += ((model.oidata.visamp - visamp)**2*invvar).sum()
+            quality += ((model.oidata.visamp.data - visamp)**2*invvar).sum()
         else:
-            quality += ((model.oidata.visamp - visamp)**2*invvar - _np.log(invvar)).sum()# - _core.LNDEUXPI*model.oidata.visamp.size
-    if model.oidata._hast3phi:
+            quality += ((model.oidata.visamp.data - visamp)**2*invvar - _np.log(invvar)).sum()
+    if model.oidata.t3phi:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.t3phierr*model.oidata.t3phierr + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.t3phi.err*model.oidata.t3phi.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
-            invvar = model.oidata._t3phi_invvar
+            invvar = model.oidata.t3phi._invvar
         if chi2:
-            quality += ((model.oidata.t3phi - t3phi)**2*invvar).sum()
+            quality += ((model.oidata.t3phi.data - t3phi)**2*invvar).sum()
         else:
-            quality += ((model.oidata.t3phi - t3phi)**2*invvar - _np.log(invvar)).sum()# - _core.LNDEUXPI*model.oidata.t3phi.size
-    if model.oidata._hast3amp:
+            quality += ((model.oidata.t3phi.data - t3phi)**2*invvar - _np.log(invvar)).sum()
+    if model.oidata.t3amp:
         if model.oidata.systematic_fit:
-            invvar = 1./(model.oidata.t3amperr*model.oidata.t3amperr + model.oidata.systematic_prior*model.oidata.systematic_prior)
+            invvar = 1./(model.oidata.t3amp.err*model.oidata.t3amp.err + model.oidata.systematic_prior*model.oidata.systematic_prior)
         else:
-            invvar = model.oidata._t3amp_invvar
+            invvar = model.oidata.t3amp._invvar
         if chi2:
-            quality += ((model.oidata.t3amp - t3amp)**2*invvar).sum()
+            quality += ((model.oidata.t3amp.data - t3amp)**2*invvar).sum()
         else:
-            quality += ((model.oidata.t3amp - t3amp)**2*invvar - _np.log(invvar)).sum()# - _core.LNDEUXPI*model.oidata.t3amp.size
+            quality += ((model.oidata.t3amp.data - t3amp)**2*invvar - _np.log(invvar)).sum()
     if chi2:
         return quality
     else:

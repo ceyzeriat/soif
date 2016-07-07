@@ -156,9 +156,9 @@ class Oifiting(_MCres):
             datatype = allmodes
         if datatype.lower() == 'data':
             datatype = []
-            if self.model.oidata._hasvis2: datatype.append('vis2')
-            if self.model.oidata._hasvisamp or self.model.oidata._hast3amp: datatype.append('vis')
-            if self.model.oidata._hast3phi or self.model.oidata._hasvisphi: datatype.append('phase')
+            if self.model.oidata.vis2: datatype.append('vis2')
+            if self.model.oidata.visamp or self.model.oidata.t3amp: datatype.append('vis')
+            if self.model.oidata.t3phi or self.model.oidata.visphi: datatype.append('phase')
         elif _np.iterable(datatype)==1 and not isinstance(datatype, str):
             datatype = [str(dum).lower() for dum in datatype if dum.lower() in allmodes]
         else:
@@ -177,7 +177,7 @@ class Oifiting(_MCres):
             thefig, ax = _core.astroskyplot(blmax, polar=False, unit='m')
             ax.matshow(data, origin='lower', extent=[-blmax,blmax,-blmax,blmax], cmap=cmap, norm=norm)
             if withdata:
-                thefig.axes.scatter(getattr(self.model.oidata, datatypeloop+'u', 0), getattr(self.model.oidata, datatypeloop+'v', 0), c=getattr(self.model.oidata, datatypeloop, 0), cmap=cmap, norm=norm)
+                thefig.axes.scatter(getattr(self.model.oidata, datatypeloop).u, getattr(self.model.oidata, datatypeloop).v, c=getattr(self.model.oidata, datatypeloop).data, cmap=cmap, norm=norm)
             _plt.colorbar(mappable)
             thefig.axes.set_title(datatypeloop)
         if ret: return retval
