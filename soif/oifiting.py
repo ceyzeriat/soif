@@ -3,7 +3,7 @@
 
 ###############################################################################
 #  
-#  OIF - Optical Interferometry fitting
+#  SOIF - Sofware for Optical Interferometry fitting
 #  Copyright (C) 2016  Guillaume Schworer
 #  
 #  This program is free software: you can redistribute it and/or modify
