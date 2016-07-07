@@ -73,7 +73,7 @@ class ReadOnly(OIException):
 
 class InvalidDataType(OIException):
     """
-    If the datatype provided does not exist
+    If the data type provided does not exist
     """
     def __init__(self, datatype, *args, **kwargs):
         super(InvalidDataType, self).__init__(datatype, *args, **kwargs)
@@ -81,7 +81,7 @@ class InvalidDataType(OIException):
 
 class HduDatatypeMismatch(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the data type and the hdu provided do not match
     """
     def __init__(self, hduhead, datatype, *args, **kwargs):
         super(HduDatatypeMismatch, self).__init__(hduhead, datatype, *args, **kwargs)
@@ -89,7 +89,7 @@ class HduDatatypeMismatch(OIException):
 
 class BadMaskShape(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the mask shape does not match the data shape
     """
     def __init__(self, shape, *args, **kwargs):
         super(BadMaskShape, self).__init__(shape, *args, **kwargs)
@@ -97,7 +97,7 @@ class BadMaskShape(OIException):
 
 class WrongData(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the data provided has the wrong data type
     """
     def __init__(self, typ, *args, **kwargs):
         super(WrongData, self).__init__(typ, *args, **kwargs)
@@ -105,7 +105,7 @@ class WrongData(OIException):
 
 class IncompatibleData(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the data type and the hdu provided do not match
     """
     def __init__(self, typ1, typ2, *args, **kwargs):
         super(IncompatibleData, self).__init__(typ1, typ2, *args, **kwargs)
@@ -113,7 +113,7 @@ class IncompatibleData(OIException):
 
 class NotADataHdu(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the hdu provided does not contain data
     """
     def __init__(self, idx, src, *args, **kwargs):
         super(NotADataHdu, self).__init__(idx, src, *args, **kwargs)
@@ -121,7 +121,7 @@ class NotADataHdu(OIException):
 
 class NoSystematicsFit(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the user did not set on the fit of systematics
     """
     def __init__(self, *args, **kwargs):
         super(NoSystematicsFit, self).__init__(*args, **kwargs)
@@ -129,7 +129,7 @@ class NoSystematicsFit(OIException):
 
 class NotCallable(OIException):
     """
-    If the datatype and the hdu provided do not match
+    If the function is callable
     """
     def __init__(self, fct, *args, **kwargs):
         super(NotCallable, self).__init__(fct, *args, **kwargs)
