@@ -1,0 +1,44 @@
+
+      -'delta'    -> Variables: RA, Dec, Flux
+      -'disc'     -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'ring'     -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'Gaussian' -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'sphere'   -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'bubble'   -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'expo'     -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'power-2'  -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+      -'power-3'  -> Variables: RA, Dec, Flux, Major, Ratio, PositionAngle
+
+'delta', 'disc', 'Gaussian', 'ring', 'sphere'
+                               'bubble', 'expo', 'power-2', 'power-3'
+
+         if (UVRad > 0.0) {
+          switch (models[m]) {
+            case 1: Ampli = (vars[p][currow[2]])*exp(-0.3606737602*UVRad*UVRad); break;
+            case 2: Ampli = 2.0*(vars[p][currow[2]])*gsl_sf_bessel_J1(UVRad)/UVRad; break;
+            case 3: Ampli = (vars[p][currow[2]])*gsl_sf_bessel_J0(UVRad); break;
+            case 4: Ampli = 3.0*(vars[p][currow[2]])*(sin(UVRad)-UVRad*cos(UVRad))/(UVRad*UVRad*UVRad); break;
+            case 5: Ampli = (vars[p][currow[2]])*sin(UVRad)/UVRad; break;
+            case 6: Ampli = (vars[p][currow[2]])*pow(1.+0.52034224525*UVRad*UVRad,-1.5); break;
+            case 7: Ampli = 0.459224094*(vars[p][currow[2]])*gsl_sf_bessel_K0(UVRad); break;
+            case 8: Ampli = (vars[p][currow[2]])*exp(-UVRad*1.3047660265); break;
+            default: Ampli = vars[p][currow[2]];
+          };
+        } else {wgt[0][cIF][k]=0.0; Ampli=vars[p][currow[2]];};
+
+
+        'sphere' stands for an optically-thin uniform filled sphere.
+        'bubble' stands for a uniform spherical surface.
+        'expo' stands for an exponential radial flux decay.
+        'power-2' stands for a decay as 1/(r^2 + r0^2) (notice that in 
+                this case, the flux is the integral from r=0 to r=r0)
+        'power-3' stands for a decay as 1/(1 + (2^2/3 - 1)(r/r0)^2)^(3/2).
+
+      * RA and Dec are the shifts w.r.t. the phase center (in arcsec)
+      * Flux is the total flux density of the component (in Jy)
+      * Major is the diameter along the major axis
+      * Ratio is the size ratio between the reference axis and the other axes 
+              (i.e., it is set to 1.0 for circularly-symmetric sources)
+      * PositionAngle is the angle of the reference axis, from North to East 
+        (in deg.)
+   
