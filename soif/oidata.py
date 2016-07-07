@@ -570,7 +570,6 @@ class Oifits(object):
         else:
             _exc.raiseIt(NoSystematicsFit, self.raiseError)
 
-
     def remorph(self, viscomp):
         ret = []
         for key in _core.DATAKEYSLOWER:

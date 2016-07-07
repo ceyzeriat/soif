@@ -331,7 +331,7 @@ class Oimodel(object):
             if not getattr(self.oidata, datatypeloop): continue
             data = getattr(self.oidata, datatypeloop).data
             model = fullmodel[calcindex[datatypeloop]]
-            error = getattr(self.oidata, datatypeloop+'err')
+            error = getattr(self.oidata, datatypeloop).error
             if self.oidata.systematic_fit: error = _np.sqrt(error*error + self.oidata.systematic_prior*self.oidata.systematic_prior)
             thefig = _plt.figure()
             if c is not None:
