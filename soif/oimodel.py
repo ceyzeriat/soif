@@ -57,7 +57,7 @@ class Oimodel(object):
                 self.add_obj(item)
 
     def _info(self):
-        return _core.font.blue+"<Oifiting Model>%s\n %s objects:\n  %s\n%s"%(_core.font.normal, self.nobj, "\n  ".join(map(str, self._objs)), str(self.oidata))
+        return _core.font.blue+"<SOIF Model>%s\n %s objects:\n  %s\n%s"%(_core.font.normal, self.nobj, "\n  ".join(map(str, self._objs)), str(self.oidata))
     def __repr__(self):
         return self._info()
     def __str__(self):

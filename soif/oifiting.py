@@ -58,7 +58,7 @@ class Oifiting(_MCres):
         super(Oifiting, self)._init(sampler=self.sampler, paramstr=self.model.paramstr, nwalkers=self.nwalkers, niters=self.niters, burnInIts=self.burnInIts)
 
     def _info(self):
-        return _core.font.blue+"<Oifiting Fit>%s\n %i walkers, %s burn-in, %s iters\n%s"%(_core.font.normal, self.nwalkers, self.burnInIts, self.niters, str(self.model))
+        return _core.font.blue+"<SOIF Fit>%s\n %i walkers, %s burn-in, %s iters\n%s"%(_core.font.normal, self.nwalkers, self.burnInIts, self.niters, str(self.model))
 
 
     def run(self, niters, burnInIts=0):

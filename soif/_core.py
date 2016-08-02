@@ -82,6 +82,7 @@ RAD2ASEC = 1/ASEC2RAD
 DEG2RAD = 0.017453292519943295 # np.pi/180. # multiply degrees with that and you get radian
 RAD2DEG = 1/DEG2RAD
 DEUXPI = 2*np.pi
+PISQRT2 = np.pi*np.sqrt(2)
 LNDEUXPI = np.log(2*np.pi)
 PISURDEUX = 0.5*np.pi
 SECPERDAY = 86400.
@@ -301,7 +302,6 @@ def gethduMJD(hdu, withdet=False):
         delta = (hdu.data['INT_TIME'][np.arange(0, ndata, nunique)]*nunique)
         mjd = mjd + np.clip(delta, 30., 1e99).cumsum().repeat(nunique)/SECPERDAY
     sortmjd = np.argsort(mjd)
-    mjd = mjd[sortmjd]
     if withdet:
         return np.arange(nset).repeat(nunique)[sortmjd], mjd, (ndata, nset, nunique, nholes, nwl)
     else:
@@ -363,7 +363,7 @@ def psf(lOverd, masperpx):
 def airy(th, B, lam=None):
     """
     Return the visibility value (unsquared), given
-    - th the angular separation in radian
+    - th the angular diameter in radian
     - B the baseline in m (alternatively in m/lambda)
     - lam the wavelength (alternatively None if B is already given as m/lambda)
     """
@@ -391,6 +391,9 @@ def gauss2D(x, y, A, x0, y0, sigmaX, sigmaY, theta):
 
 def gauss1D(x, y, A, x0, y0, sigma):
     return A*np.exp(-0.5*((x-x0)**2 + (y-y0)**2)/sigma**2)
+
+def gauss1Dsimple(blwlsigma):
+    return np.exp(-blwlsigma*blwlsigma)
 
 
 def BB(teff, wl, rel=False):

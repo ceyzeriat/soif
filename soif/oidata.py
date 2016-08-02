@@ -121,7 +121,7 @@ class Oigrab(object):
                 targetindexnumber, MJD, (ndata, nset, nunique, nholes, nwl) = _core.gethduMJD(item, withdet=True)
                 tgtlist[idx] = []
                 if not ret: print("\n%s [hdu=%d]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n%s" % (_core.hduToDataType(item), idx, "-"*52))
-                for tgtidx, sMJD in zip(targetindexnumber.reshape((-1, nunique))[:,0], MJD.reshape((-1, nunique))[:,0]):
+                for tgtidx, sMJD in zip(targetindexnumber.reshape((-1, nunique))[:,0], MJD[targetindexnumber].reshape((-1, nunique))[:,0]):
                     tgtfilter = slice(tgtidx*nunique, (tgtidx+1)*nunique)
                     tgtid = item.data['TARGET_ID'][tgtfilter]
                     if not ret: print("%10s | %9s | %13s | %4s | %4s"%(tgtidx, tgtid[0], sMJD, tgtid.size, nwl))
@@ -129,7 +129,7 @@ class Oigrab(object):
         hdus.close()
         if ret: return tgtlist
 
-    def show_filtered(self, tgt=None, mjd=[None, None], hduNums=[], vis2=True, t3phi=True, t3amp=True, visphi=True, visamp=True, verbose=False, **kwargs): # inst=None, array=None, wl=None, 
+    def show_filtered(self, tgt=None, mjd=[None, None], hduNums=[], vis2=True, t3phi=True, t3amp=True, visphi=True, visamp=True, verbose=False, **kwargs):
         """
         Given an oifits file 'src' and filtering parameters on the target name (OI_TARGET table), the instrument name (OI_WAVELENGTH table), the array name (OI_ARRAY table), the observation wavelength (OI_WAVELENGTH table) and the acquisition time [t_min, t_max] (OI_VIS2, OI_VIS, OI_T3 tabkes), this function returns the data indices of the data matching all of these different filters.
         These lists are used to load the data within an Oidata object.
@@ -145,7 +145,7 @@ class Oigrab(object):
             if _core.aslist(hduNums) != [] and idx not in _core.aslist(hduNums): continue
             if _core.hduToDataType(item) is not None:
                 MJD = _core.gethduMJD(item)[1]
-                filt = ((MJD>=mjd[0]) & (MJD<mjd[1]))                
+                filt = ((MJD>=mjd[0]) & (MJD<=mjd[1]))
                 if tgt is not None:
                     filt = (filt & (item.data.field("TARGET_ID") == int(tgt)))
                 if verbose: print("%s:\n  %d/%s\n"%(_core.hduToDataType(item), filt.sum(), item.data["TARGET_ID"].size))
@@ -458,32 +458,41 @@ class Oifits(object):
     def __str__(self):
         return self._info()
 
-    def addData(self, src, datafilter, flatten=False, degree=True, significant_figures=5, wl=[None, None], **kwargs):
-        hdus = _pf.open(src) # open
-        hduwlidx = _core.hduWlindex(hdus)
-        if not hduwlidx:
-            if _exc.raiseIt(_exc.NoWavelengthTable, self.raiseError, src=src): return
-        # get wl sorted
-        wl = [float(wl[0] if wl[0] is not None else -_np.inf), float(wl[1] if wl[1] is not None else _np.inf)]
-        allwl = hdus[hduwlidx].data[_core.KEYSWL['wl']]
-        wlindices = _np.arange(allwl.size)[((allwl>=wl[0]) & (allwl<wl[1]))]
-        # for each datafilter
-        whichdata = datafilter.get('data', {'data':{'VIS2':True, 'T3PHI':True, 'T3AMP':True, 'VISPHI':True, 'VISAMP':True}})
-        for idx, indices in datafilter.items():
-            if not isinstance(idx, int): continue
-            # if real data
-            if _core.hduToDataType(hdus[idx]) is not None:
-                for datatype in _core.ALLDATAEXTNAMES[hdus[idx].header['EXTNAME']]:
-                    if not whichdata.get(datatype.upper(), True): continue
-                    thedata = Oidata(src=src, hduidx=idx, datatype=datatype, hduwlidx=hduwlidx, indices=indices, wlindices=wlindices, degree=degree, flatten=flatten, significant_figures=significant_figures, **kwargs)
-                    if getattr(self, datatype.lower()):
-                        getattr(self, datatype.lower())._addData(thedata, flatten=flatten, raiseError=self.raiseError)
-                    else:
-                        setattr(self, datatype.lower(), thedata)
-            else:
-                hdus.close()
-                if _exc.raiseIt(_exc.NotADataHdu, self.raiseError, idx=idx, src=str(src)): return
-        hdus.close()
+    def addData(self, src, datafilter={}, flatten=False, degree=True, significant_figures=5, wl=[None, None], **kwargs):
+        if isinstance(src, Oifits):
+            thedata = src
+            for datatype in _core.DATAKEYSLOWER:
+                if not getattr(thedata, datatype): continue
+                if getattr(self, datatype):
+                    getattr(self, datatype)._addData(getattr(thedata, datatype), flatten=flatten, **kwargs)
+                else:
+                    setattr(self, datatype, getattr(thedata, datatype))
+        else:
+            whichdata = datafilter.get('data', {'data':{'VIS2':True, 'T3PHI':True, 'T3AMP':True, 'VISPHI':True, 'VISAMP':True}})
+            hdus = _pf.open(src) # open
+            hduwlidx = _core.hduWlindex(hdus)
+            if not hduwlidx:
+                if _exc.raiseIt(_exc.NoWavelengthTable, self.raiseError, src=src): return
+            # get wl sorted
+            wl = [float(wl[0] if wl[0] is not None else -_np.inf), float(wl[1] if wl[1] is not None else _np.inf)]
+            allwl = hdus[hduwlidx].data[_core.KEYSWL['wl']]
+            wlindices = _np.arange(allwl.size)[((allwl>=wl[0]) & (allwl<wl[1]))]
+            # for each datafilter
+            for idx, indices in datafilter.items():
+                if not isinstance(idx, int) or _np.size(indices)==0: continue
+                # if real data
+                if _core.hduToDataType(hdus[idx]) is not None:
+                    for datatype in _core.ALLDATAEXTNAMES[hdus[idx].header['EXTNAME']]:
+                        if not whichdata.get(datatype.upper(), True): continue
+                        thedata = Oidata(src=src, hduidx=idx, datatype=datatype, hduwlidx=hduwlidx, indices=indices, wlindices=wlindices, degree=degree, flatten=flatten, significant_figures=significant_figures, **kwargs)
+                        if getattr(self, datatype.lower()):
+                            getattr(self, datatype.lower())._addData(thedata, flatten=flatten, **kwargs)
+                        else:
+                            setattr(self, datatype.lower(), thedata)
+                else:
+                    hdus.close()
+                    if _exc.raiseIt(_exc.NotADataHdu, self.raiseError, idx=idx, src=str(src)): return
+            hdus.close()
         if not kwargs.pop('noupdate', False): self.update()
 
     def flatten(self):

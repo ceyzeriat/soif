@@ -75,8 +75,8 @@ class UniformRing(_Oimainobject):
         rout = self.rin + self.wid
 
         # analytical fourier transform for a uniform disk minus another uniform disk
-        visout = _core.airy(rout*_core.MAS2RAD, blwl)
-        visin = _core.airy(self.rin*_core.MAS2RAD, blwl)
+        visout = _core.airy(2*rout*_core.MAS2RAD, blwl)
+        visin = _core.airy(2*self.rin*_core.MAS2RAD, blwl)
 
         normflux = rout*rout-self.rin*self.rin
 
@@ -108,8 +108,8 @@ class UniformRing2D(_Oimainobject):
         blwl = np.sqrt(U*U+V*V)/wl
 
         # analytical fourier transform for a uniform disk minus another uniform disk
-        visout = _core.airy(rout*_core.MAS2RAD, blwl)
-        visin = _core.airy(self.rin*_core.MAS2RAD, blwl)
+        visout = _core.airy(2*rout*_core.MAS2RAD, blwl)
+        visin = _core.airy(2*self.rin*_core.MAS2RAD, blwl)
 
         normflux = rout*rout-self.rin*self.rin
 
@@ -315,7 +315,8 @@ class Gauss(_Oimainobject):
         oscil = self.oscil(u, v, wl)
 
         # analytical fourier transform for a 1D gaussian blob
-        gg = _core.gauss1D(u, v, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
+        #gg = _core.gauss1D(u, v, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
+        gg = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*self.sig)*blwl)
 
         return oscil*gg, 1./self.cr
 
@@ -341,7 +342,8 @@ class Gauss2D(_Oimainobject):
         U, V = self._shearCoord(u,v, fourier=True)
 
         # analytical fourier transform for a 1D gaussian blob
-        gg = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
+        #gg = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
+        gg = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*self.sig)*np.sqrt(U*U+V*V)/wl)
 
         return oscil*gg, 1./self.cr
 

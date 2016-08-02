@@ -61,8 +61,8 @@ class Oimainobject(object):
                 if len(bounds[item])<2: # error if less than 2 bounds
                     raise Exception("Bounds for object '%s', parameter '%s' has only one bound: %s." % (name, item, str(bounds[item])))
                 #set basic parameters
-                setattr(self, item+"_bounds", bounds[item][:2])
-                prior_range = _np.abs(getattr(self, item+"_bounds")[1]-getattr(self, item+"_bounds")[0])
+                setattr(self, item+"_bounds", list(map(float, bounds[item][:2])))
+                prior_range = _np.abs(getattr(self, item+"_bounds")[1]-getattr(self, item+"_bounds")[0])*1.
                 allkwargs = {'prior_bounds': getattr(self, item+"_bounds"), 'prior_range': prior_range, 'prior_invrange': 1./prior_range, 'prior_lninvrange':-_np.log(prior_range)}
                 if len(bounds[item])>=4:
                     if not isinstance(bounds[item][3], dict):
