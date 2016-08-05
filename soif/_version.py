@@ -27,6 +27,6 @@
 
 __major__ = 1
 __minor__ = 0
-__micro__ = 1
+__micro__ = 2
 # keep next line as string unless you want to break stuff
-__version__ = "v1.0.1"
+__version__ = "v1.0.2"
