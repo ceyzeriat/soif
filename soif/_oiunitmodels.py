@@ -25,4 +25,4 @@
 ###############################################################################
 
 
-from oiunitmodels import PointSource, UniformDisk, UniformDisk2D, UniformRing, UniformRing2D, Gauss, Gauss2D, BGimage, GaussDiff2D, GaussDiff
+from oiunitmodels import PointSource, UniformDisk, UniformDisk2D, UniformRing, UniformRing2D, Gauss, Gauss2D, BGimage, GaussDiff2D, GaussDiff, UniformDisk2DLinCR, UniformDiskLinCR

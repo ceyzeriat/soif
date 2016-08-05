@@ -38,15 +38,18 @@ try:
 except ImportError:
     import pyfits as _pf
 
+import oiexception as _exc
 import _core
 _np = _core.np
 
 
 class Oimodel(object):
-    def __init__(self, oidata, objs=[], tweakparams=None):
+    def __init__(self, oidata, objs=[], tweakparams=None, **kwargs):
         self._objs = []
+        self.raiseError = bool(kwargs.pop('raiseError', True))
         self.oidata = oidata
-        if tweakparams is not None and not callable(tweakparams): raise Exception("tweakparams shall be callable")
+        if tweakparams is not None and not callable(tweakparams):
+            if _exc.raiseIt(_exc.NotCallable, self.raiseError, fct="tweakparams"): return False
         self._tweakparams = tweakparams
         self.nobj = 0
         self._nparamsObj = 0
@@ -69,7 +72,7 @@ class Oimodel(object):
         return self._nparamsObj + self.oidata.systematic_fit
     @nparams.setter
     def nparams(self, value):
-        raise AttributeError("Read-only")
+        _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="nparams")
 
     @property
     def nparamsObjs(self):
@@ -78,7 +81,7 @@ class Oimodel(object):
         return self._nparamsObj
     @nparamsObjs.setter
     def nparamsObjs(self, value):
-        raise AttributeError("Read-only")
+        _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="nparamsObjs")
     
 
     def add_obj(self, typ, name=None, params={}, prior={}):
@@ -144,7 +147,7 @@ class Oimodel(object):
         return ret
     @paramstr.setter
     def paramstr(self, value):
-        raise Exception("Read-only")
+        _exc.raiseIt(_exc.ReadOnly, self.raiseError, attr="paramstr")
 
 
     @property

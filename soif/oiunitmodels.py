@@ -30,7 +30,7 @@ import _core
 np = _core.np
 
 
-_objects = ['PointSource', 'UniformDisk', 'UniformDisk2D', 'UniformRing', 'UniformRing2D', 'Gauss', 'Gauss2D', 'GaussDiff2D', 'GaussDiff', 'BGimage']
+_objects = ['PointSource', 'UniformDisk', 'UniformDisk2D', 'UniformRing', 'UniformRing2D', 'Gauss', 'Gauss2D', 'GaussDiff2D', 'GaussDiff', 'BGimage', 'UniformDisk2DLinCR', 'UniformDiskLinCR']
 
 """
 Must return
@@ -42,8 +42,8 @@ a dict, with keys:
 class PointSource(_Oimainobject):
     _keys = ['sep','pa','cr']
 
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(PointSource, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+        super(PointSource, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -63,8 +63,8 @@ class PointSource(_Oimainobject):
 class UniformRing(_Oimainobject):
     _keys = ['sep','pa','cr','rin','wid']
 
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(UniformRing, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+        super(UniformRing, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -78,9 +78,10 @@ class UniformRing(_Oimainobject):
         visout = _core.airy(2*rout*_core.MAS2RAD, blwl)
         visin = _core.airy(2*self.rin*_core.MAS2RAD, blwl)
 
-        normflux = rout*rout-self.rin*self.rin
+        rout2 = rout*rout
+        rin2 = self.rin*self.rin
 
-        return oscil*(visout*rout*rout-visin*self.rin*self.rin)/normflux, 1./self.cr
+        return (rout2*visout-rin2*visin)/(rout2-rin2)*oscil, 1./self.cr
 
     def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
@@ -91,11 +92,11 @@ class UniformRing(_Oimainobject):
         return theim/(theim.sum()*self.cr)
 
 
-class UniformRing2D(_Oimainobject):
+class UniformRing2D(UniformRing):
     _keys = ['sep','pa','cr','rin','wid','rat','th']
 
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(UniformRing2D, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(UniformRing2D, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -111,9 +112,10 @@ class UniformRing2D(_Oimainobject):
         visout = _core.airy(2*rout*_core.MAS2RAD, blwl)
         visin = _core.airy(2*self.rin*_core.MAS2RAD, blwl)
 
-        normflux = rout*rout-self.rin*self.rin
+        rout2 = rout*rout
+        rin2 = self.rin*self.rin
 
-        return oscil*(visout*rout*rout-visin*self.rin*self.rin)/normflux, 1./self.cr
+        return (rout2*visout-rin2*visin)/(rout2-rin2)*oscil, 1./self.cr
 
     def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
@@ -129,8 +131,8 @@ class BGimage(_Oimainobject):
     _keys = ['cr']
     _save = ['_img', 'masperpx', 'negRA']
 
-    def __init__(self, name, img=None, masperpx=None, priors={}, bounds={}, negRA=False, totFlux=None, **kwargs):
-        super(BGimage, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+    def __init__(self, name, img=None, masperpx=None, priors={}, bounds={}, negRA=False, totFlux=None, *args, **kwargs):
+        super(BGimage, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
         self.masperpx = float(masperpx)
         self.negRA = bool(negRA)
         if img is None: img = kwargs.get('_img')
@@ -190,8 +192,8 @@ class BGimage(_Oimainobject):
 class UniformDisk(_Oimainobject):
     _keys = ['sep','pa','cr','diam']
 
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(UniformDisk, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+        super(UniformDisk, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -214,11 +216,11 @@ class UniformDisk(_Oimainobject):
 
 
 
-class UniformDisk2D(_Oimainobject):
+class UniformDisk2D(UniformDisk):
     _keys = ['sep','pa','cr','diam','rat','th']
 
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(UniformDisk2D, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(UniformDisk2D, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -246,8 +248,8 @@ class UniformDisk2D(_Oimainobject):
 
 class GaussDiff(_Oimainobject):
     _keys = ['sep','pa','cr','sig','dif']
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(GaussDiff, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(GaussDiff, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -257,13 +259,13 @@ class GaussDiff(_Oimainobject):
         sigout = self.sig + self.dif
         
         # analytical fourier transform for a 1D gaussian blob
-        ggin = _core.gauss1D(u, v, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
-        ggout = _core.gauss1D(u, v, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*sigout))
+        ggin = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*self.sig)*blwl)
+        ggout = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*sigout)*blwl)
 
         nin = self.sig*self.sig
         nout = sigout*sigout
 
-        return oscil*(ggout*nout-ggin*nin)/(nout-nin), 1./self.cr
+        return (ggout*nout-ggin*nin)/(nout-nin)*oscil, 1./self.cr
 
     def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
@@ -272,28 +274,30 @@ class GaussDiff(_Oimainobject):
         return theim/(theim.sum()*self.cr) # renorm just in case of bad sampling, so the integral is perfectly 1
 
 
-class GaussDiff2D(_Oimainobject):
+class GaussDiff2D(GaussDiff):
     _keys = ['sep','pa','cr','sig','dif','rat','th']
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(GaussDiff2D, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(GaussDiff2D, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
         Calculates the complex visibilities of the object
         """
-        oscil = self.oscil(u, v, wl)
-        sigout = self.sig + self.dif
+        u, v = self._shearCoord(u,v, fourier=True)
+        return super(GaussDiff2D, self)._calcCompVis(u=u, v=v, wl=wl, blwl=np.sqrt(u*u+v*v/wl, oidata=oidata))
+#        oscil = self.oscil(u, v, wl)
+#        sigout = self.sig + self.dif
 
-        U, V = self._shearCoord(u,v, fourier=True)
+        
 
         # analytical fourier transform for a 1D gaussian blob
-        ggin = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
-        ggout = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*sigout))
+#        ggin = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
+#        ggout = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*sigout))
 
-        nin = self.sig*self.sig
-        nout = sigout*sigout
+#        nin = self.sig*self.sig
+#        nout = sigout*sigout
 
-        return oscil*(ggout*nout-ggin*nin)/(nout-nin), 1./self.cr
+#        return (ggout*nout-ggin*nin)/(nout-nin)*oscil, 1./self.cr
 
     def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
@@ -305,8 +309,8 @@ class GaussDiff2D(_Oimainobject):
 
 class Gauss(_Oimainobject):
     _keys = ['sep','pa','cr','sig']
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(Gauss, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(Gauss, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -328,10 +332,10 @@ class Gauss(_Oimainobject):
         return theim/(theim.sum()*self.cr) # renorm just in case of bad sampling, so the integral is perfectly 1
 
 
-class Gauss2D(_Oimainobject):
+class Gauss2D(Gauss):
     _keys = ['sep','pa','cr','sig','rat','th']
-    def __init__(self, name, priors={}, bounds={}, **kwargs):
-        super(Gauss2D, self).__init__(name=name, priors=priors, bounds=bounds, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(Gauss2D, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -354,6 +358,46 @@ class Gauss2D(_Oimainobject):
         theim = _core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*self.sig/sepmax)
         return theim/(theim.sum()*self.cr) # another step of normalization, in case the sum is not really =1 (bad sampling)
 
+
+class UniformDiskLinCR(UniformDisk):
+    _keys = ['sep','pa','cr1','cr2','diam']
+
+    def _calcCompVis(self, u, v, wl, blwl, oidata=None):
+        """
+        Calculates the complex visibilities of the object
+        """
+        oscil = self.oscil(u, v, wl)
+
+        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+
+        flx = oidata._wlspan / ((wl - oidata._wlmin) * (self.cr2 - self.cr1) + self.cr1 * oidata._wlspan)
+
+        return oscil*vis, flx
+
+    @property
+    def cr(self):
+        return 0.5*(self.cr1 + self.cr2)
+    
+
+
+class UniformDisk2DLinCR(UniformDiskLinCR):
+    _keys = ['sep','pa','cr1','cr2','diam','rat','th']
+
+    def _calcCompVis(self, u, v, wl, blwl, oidata=None):
+        """
+        Calculates the complex visibilities of the object
+        """
+        oscil = self.oscil(u, v, wl)
+
+        U, V = self._shearCoord(u,v, fourier=True)
+        blwl = np.sqrt(U*U+V*V)/wl
+
+        # analytical fourier transform for a uniform disk
+        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+
+        flx = oidata._wlspan / ((wl - oidata._wlmin) * (self.cr2 - self.cr1) + self.cr1 * oidata._wlspan)
+
+        return oscil*vis, flx
 
 """
 class PreObject(_Oimainobject):
@@ -421,21 +465,34 @@ class UniformDiskLinCR(_Oimainobject):
 
         return oscil*vis, flx
 
-
+"""
 class Spectral(object):
-    def __init__(self, allwl=None, spectralKey='cr', **kwargs):
-        if str(spectralKey) not in self._initkeys: raise Exception("not such key: %s" % spectralKey)
+    def __init__(self, oidata, spectralKey, *args, **kwargs):
+        if str(spectralKey) not in self._keys: raise Exception("Not such key '%s' to spectralize" % (spectralKey))
         self._spectralKey = str(spectralKey)
-        self._keys = list(self._initkeys) # makes a copy
-        self._keys.remove(self.spectralKey)
-        self._wlspectral = np.sort(list(set(np.ravel(allwl))))
+        self._keys = list(self._keys) # makes a copy
+        self._keys.remove(self._spectralKey)
+        self._wlspectral = np.sort(_core.unique(ar=np.ravel(oidata.uvwl['wl']), precision=oidata.significant_figures))
         self.nspectral = self._wlspectral.size
         self.wlspectral = {}
         self._wlspectralindex = {}
         for i, wl in enumerate(self._wlspectral):
             self.wlspectral[self.spectralKey+str(i)] = wl
-            self._wlspectralindex[self.spectralKey+str(i)] = (allwl==wl)
+            self._wlspectralindex[self.spectralKey+str(i)] = (oidata.uvwl['wl']==wl)
             self._keys += [self.spectralKey+str(i)]
+        priors, bounds = self._single2spectral(priors, bounds)
+        super(Spectral, self).__init__(priors=priors, bounds=bounds, *args, **kwargs)
+
+    def __getattribute__(self, name):
+        if name == 'spectralKey' or name == '_spectralKey':
+            return super(B, self).__getattribute__(name)
+        elif name == self.spectralKey:
+            ret = np.ones(self._wlspectralindex[name+'0'].shape)
+            for i in range(self.nspectral):
+                ret[self._wlspectralindex[name+str(i)]] = getattr(self, name+str(i))
+            return ret
+        else:
+            return super(B, self).__getattribute__(name)
 
     @property
     def spectralKey(self):
@@ -474,23 +531,8 @@ class Spectral(object):
         return priors, bounds
 
 
-class PointSourceSpectral(PointSource, Spectral):
-    _initkeys = ['sep','pa', 'cr']
 
-    def __init__(self, name, oidata, priors={}, bounds={}, **kwargs):
+class PointSourceSpectral(Spectral, PointSource):
+    def __init__(self, name, spectralKey, oidata, priors={}, bounds={}, *args, **kwargs):
         if not isinstance(oidata, Oidata): raise Exception("oidata must be Oidata type")
-        Spectral.__init__(self, allwl=oidata.uvwl['wl'], **kwargs)
-        priors, bounds = self._single2spectral(priors, bounds)
-        PointSource.__init__(self, name=name, priors=priors, bounds=bounds, **kwargs)
-
-    @property
-    def cr(self):
-        ret = np.ones(self._wlspectralindex['cr0'].shape)
-        for i in range(self.nspectral):
-            ret[self._wlspectralindex['cr'+str(i)]] = getattr(self, 'cr'+str(i))
-        return ret
-    @cr.setter
-    def cr(self, value):
-        raise Exception("Read-only")
-    
-"""
+        super(PointSourceSpectral, self).__init__(self, oidata=oidata, spectralKey=spectralKey, name=name, priors=priors, bounds=bounds, *args, **kwargs)

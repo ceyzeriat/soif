@@ -50,7 +50,7 @@ try:
 	from . import oiload
 except ImportError:
 	pass
-from ._version import __version__, __major__, __minor__
+from ._version import __version__, __major__, __minor__, __micro__
 
 #import oipriors
 

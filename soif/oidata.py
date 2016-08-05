@@ -293,11 +293,15 @@ class Oidata(OidataEmpty):
         return self._mask
     @mask.setter
     def mask(self, value):
-        value = _np.asarray(value, dtype=bool)
-        if value.shape != self._data.shape:
-            if _exc.raiseIt(_exc.BadMaskShape, self.raiseError, shape=str(self.data.shape)): return False
-        self._use_mask = not value.all()
-        self._mask = value
+        if value is True or value is False or value is None: # removes the mask
+            self._use_mask = False
+            self._mask = np.ones(self._data.shape, dtype=bool)
+        else:
+            value = _np.asarray(value, dtype=bool)
+            if value.shape != self._data.shape:
+                if _exc.raiseIt(_exc.BadMaskShape, self.raiseError, shape=str(self._data.shape)): return False
+            self._use_mask = not value.all()
+            self._mask = value
 
     @property
     def u(self):
@@ -564,6 +568,9 @@ class Oifits(object):
                 thedata._ind = dum.copy()
         # prepare pre-processed uniques
         self.uvwl = {'u':unique_uvwl['u'], 'v':unique_uvwl['v'], 'wl':unique_uvwl['wl'], 'blwl':_np.hypot(unique_uvwl['u'], unique_uvwl['v'])/unique_uvwl['wl']}
+        self._wlmin = self.uvwl['wl'].min()
+        self._wlmax = self.uvwl['wl'].max()
+        self._wlspan = self._wlmax - self._wlmin
 
     @property
     def systematic_fit(self):

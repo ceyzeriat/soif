@@ -173,7 +173,7 @@ class Oifiting(_MCres):
             if ret: retval.append(data)
             if cm_min_orig is None: cm_min = data.min()
             if cm_max_orig is None: cm_max = data.max()
-            cmap, norm, mappable = _core.funcs.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
+            cmap, norm, mappable = _core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
             thefig, ax = _core.astroskyplot(blmax, polar=False, unit='m')
             ax.matshow(data, origin='lower', extent=[-blmax,blmax,-blmax,blmax], cmap=cmap, norm=norm)
             if withdata:
@@ -197,7 +197,7 @@ class Oifiting(_MCres):
         toplot = _np.abs(_np.fft.fftshift(_np.fft.ifft2(self.model.compuvimage(blmax=nbpts*2*sepmax*_core.MAS2RAD/(_np.pi*wl), wl=wl, params=params, nbpts=nbpts))))
         if cm_min is None: cm_min = toplot.min()
         if cm_max is None: cm_max = toplot.max()
-        cmap, norm, mappable = _core.funcs.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
+        cmap, norm, mappable = _core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
         thefig, ax = _core.astroskyplot(sepmax, polar=False, unit='mas')
         ax.matshow(toplot, origin='lower', extent=[-sepmax,sepmax,-sepmax,sepmax], cmap=cmap, norm=norm)
         _plt.colorbar(mappable)

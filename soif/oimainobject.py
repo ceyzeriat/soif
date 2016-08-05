@@ -38,7 +38,8 @@ except ImportError:
 
 
 class Oimainobject(object):
-    def __init__(self, name, priors={}, bounds={}, verbose=False, **kwargs):
+    def __init__(self, name, priors={}, bounds={}, verbose=False, *args, **kwargs):
+        super(Oimainobject, self).__init__(*args, **kwargs)
         self.name = str(name)
         self._nkeys = len(self._keys)
         self._pkeys = []
