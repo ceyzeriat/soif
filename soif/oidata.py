@@ -505,6 +505,7 @@ class Oifits(object):
         """
         for key in _core.DATAKEYSLOWER:
             if getattr(self, key): getattr(self, key).flatten()
+        self.update()
 
     def update(self):
         """
