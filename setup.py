@@ -37,9 +37,7 @@ setup(
     install_requires = ["numpy","emcee","corner","patiencebar","MCres"],
     download_url = 'https://github.com/ceyzeriat/soif/tree/master/dist',
     keywords = ['astronomy','interferometry','data','processing','reduction','model','fitting','optical'],
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
-    test_suite = 'pytest',
+    package_data={"": ["README.rst", "LICENSE"]},
     classifiers = [
         "Development Status :: 4 - Beta",
         "Environment :: Console",
