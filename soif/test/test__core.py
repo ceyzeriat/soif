@@ -34,7 +34,7 @@ def test_abs2(seed=42):
     x = np.random.rand(25)*100-50
     assert np.allclose(_core.abs2(x), np.power(np.abs(x), 2))
 
-def test_gen_seed(seed=42):
-    seeds = [_core.gen_seed(seed) for i in range(25)]
+def test_gen_seed():
+    seeds = [_core.gen_seed() for i in range(25)]
     assert len(seeds) == len(set(seeds))
 
