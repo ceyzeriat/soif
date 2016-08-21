@@ -3,7 +3,6 @@ sudo: false
 env:
     global:
         - MATPLOTLIB_VERSION=1.5.1
-        - NUMPY_VERSION=1.6
 
     matrix:
         - PYTHON_VERSION=2.7
@@ -19,8 +18,8 @@ install:
     - conda update -q conda
     - conda info -a
 
-    - conda create --yes -n test python=$PYTHON_VERSION matplotlib=$MATPLOTLIB_VERSION numpy=$NUMPY_VERSION scipy setuptools nose
-    - pip install MCres patiencebar
+    - conda create --yes -n test python=$PYTHON_VERSION matplotlib=$MATPLOTLIB_VERSION numpy astropy scipy setuptools nose
+    - pip install MCres patiencebar corner
     - source activate test
     - pip install coveralls
 
