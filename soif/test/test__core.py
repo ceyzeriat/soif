@@ -29,11 +29,12 @@ import numpy as np
 
 from .. import _core
 
-def test_abs2():
-	assert _core.abs2(-2) == 4
-	assert np.abs(_core.abs2(3.1) - 9.61) < 1e-13
+def test_abs2(seed=42):
+	np.random.seed(seed)
+    x = np.random.rand(25)*100-50
+	assert np.allclose(_core.abs2(x) == np.power(np.abs(x), 2)
 
-def test_gen_seed():
-	seeds = [_core.gen_seed() for i in range(100)]
+def test_gen_seed(seed=42):
+	seeds = [_core.gen_seed(seed) for i in range(25)]
 	assert len(seeds) == len(set(seeds))
 

@@ -28,9 +28,6 @@
 import matplotlib.pyplot as _plt
 from matplotlib.gridspec import GridSpec as _matplotlibGridspecGridSpec
 from matplotlib.patches import FancyArrowPatch as _matplotlibPatchesFancyArrowPatch
-from oiunitmodels import _objects
-from _oiunitmodels import *
-from oimainobject import Oimainobject as _Oimainobject
 from copy import deepcopy as _deepcopy
 from time import strftime as _strftime
 try:
@@ -38,6 +35,9 @@ try:
 except ImportError:
     import pyfits as _pf
 
+from .oiunitmodels import _objects
+from ._oiunitmodels import *
+from .oimainobject import Oimainobject as _Oimainobject
 from . import oiexception as _exc
 from . import _core
 _np = _core.np
