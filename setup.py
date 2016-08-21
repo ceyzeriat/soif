@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from sys import argv, exit
-import re, os
+import os, re
 
 if "upl" in argv[1:]:
-    import os
     os.system("python setup.py register -r pypi")
     os.system("python setup.py sdist upload -r pypi")
     exit()
+
+m = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "soif", "_version.py")).read()
+version = re.findall(r"__version__ *= *\"(.*?)\"", m)[0]
 
 try:
     from setuptools import setup
@@ -16,10 +18,6 @@ try:
 except ImportError:
     from distutils.core import setup
     setup
-
-m = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "soif", "_version.py")).read()
-version = re.findall(r"__version__ *= *\"(.*?)\"", m)[0]
-
 
 setup(
     name = "soif",
@@ -39,6 +37,9 @@ setup(
     install_requires = ["numpy","emcee","corner","patiencebar","MCres"],
     download_url = 'https://github.com/ceyzeriat/soif/tree/master/dist',
     keywords = ['astronomy','interferometry','data','processing','reduction','model','fitting','optical'],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
+    test_suite = 'pytest',
     classifiers = [
         "Development Status :: 4 - Beta",
         "Environment :: Console",

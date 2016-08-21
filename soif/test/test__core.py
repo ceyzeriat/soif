@@ -29,8 +29,6 @@ import pytest
 
 import numpy as np
 
-from multi import M
-
 from .. import _core
 
 def test_abs2():
@@ -39,7 +37,5 @@ def test_abs2():
 
 def test_gen_seed():
 	seeds = [_core.gen_seed() for i in range(100)]
-	assert len(seeds) == len(set(seeds))
-	seeds = M(_core.gen_seed, n=100)()
 	assert len(seeds) == len(set(seeds))
 
