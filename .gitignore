@@ -15,7 +15,10 @@ htmlcov
 MANIFEST.in
 
 # Sphinx
-docs/
+docs/_build
+docs/_templates
+docs/_static
+docs/old_docs
 
 # Packages/installer info
 *.egg

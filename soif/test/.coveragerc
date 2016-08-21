@@ -1,10 +1,10 @@
 [run]
 source = {packagename}
 omit =
-   */tests/*
-   */*/tests/*
-   */*/*/tests/*
-   */_version*
+   */test/*
+   */*/test/*
+   */*/*/test/*
+   */*version*
 
 [report]
 exclude_lines =
