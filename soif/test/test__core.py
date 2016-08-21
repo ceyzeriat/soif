@@ -30,11 +30,11 @@ import numpy as np
 from .. import _core
 
 def test_abs2(seed=42):
-	np.random.seed(seed)
+    np.random.seed(seed)
     x = np.random.rand(25)*100-50
-	assert np.allclose(_core.abs2(x) == np.power(np.abs(x), 2)
+    assert np.allclose(_core.abs2(x) == np.power(np.abs(x), 2)
 
 def test_gen_seed(seed=42):
-	seeds = [_core.gen_seed(seed) for i in range(25)]
-	assert len(seeds) == len(set(seeds))
+    seeds = [_core.gen_seed(seed) for i in range(25)]
+    assert len(seeds) == len(set(seeds))
 
