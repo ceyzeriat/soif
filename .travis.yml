@@ -3,7 +3,7 @@ sudo: false
 env:
     global:
         - MATPLOTLIB_VERSION=1.5.1
-        - NUMPY_VERSION=1.9
+        - NUMPY_VERSION=1.6
 
     matrix:
         - PYTHON_VERSION=2.7
