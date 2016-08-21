@@ -19,7 +19,8 @@ install:
     - conda update -q conda
     - conda info -a
 
-    - conda create --yes -n test python=$PYTHON_VERSION matplotlib=$MATPLOTLIB_VERSION numpy=$NUMPY_VERSION scipy setuptools nose MCres patiencebar
+    - conda create --yes -n test python=$PYTHON_VERSION matplotlib=$MATPLOTLIB_VERSION numpy=$NUMPY_VERSION scipy setuptools nose
+    - pip install MCres patiencebar
     - source activate test
     - pip install coveralls
 
