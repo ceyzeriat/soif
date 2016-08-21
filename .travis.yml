@@ -30,7 +30,7 @@ env:
     matrix:
         - PYTHON_VERSION=2.7 SETUP_CMD='setup.py egg_info'
         - PYTHON_VERSION=3.3 SETUP_CMD='setup.py egg_info'
-        - PYTHON_VERSION=3.4 SETUP_CMD='setup.pyegg_info'
+        - PYTHON_VERSION=3.4 SETUP_CMD='setup.py egg_info'
 
 matrix:
 
@@ -41,7 +41,7 @@ matrix:
 
         # Try MacOS X
         - os: osx
-          env: PYTHON_VERSION=2.7 SETUP_CMD='-m test' OPTIONAL_DEPS=true
+          env: PYTHON_VERSION=2.7 SETUP_CMD='-m pytest' OPTIONAL_DEPS=true
 
         # Check for sphinx doc build warnings - we do this first because it
         # runs for a long time
@@ -53,11 +53,11 @@ matrix:
 
         # Try all python versions with the latest numpy
         - os: linux
-          env: PYTHON_VERSION=2.7 SETUP_CMD='-m test'
+          env: PYTHON_VERSION=2.7 SETUP_CMD='-m pytest'
         - os: linux
-          env: PYTHON_VERSION=3.3 SETUP_CMD='-m test'
+          env: PYTHON_VERSION=3.3 SETUP_CMD='-m pytest'
         - os: linux
-          env: PYTHON_VERSION=3.4 SETUP_CMD='-m test'
+          env: PYTHON_VERSION=3.4 SETUP_CMD='-m pytest'
 
         # Now try with all optional dependencies on 2.7 and an appropriate 3.x
         # build (with latest numpy). We also note the code coverage on Python
