@@ -25,8 +25,8 @@
 ###############################################################################
 
 
-from oimainobject import Oimainobject as _Oimainobject
-import _core
+from .oimainobject import Oimainobject as _Oimainobject
+from . import _core
 np = _core.np
 
 

@@ -25,4 +25,21 @@
 ###############################################################################
 
 
-from .oiunitmodels import PointSource, UniformDisk, UniformDisk2D, UniformRing, UniformRing2D, Gauss, Gauss2D, BGimage, GaussDiff2D, GaussDiff, UniformDisk2DLinCR, UniformDiskLinCR
+import pytest
+
+import numpy as np
+
+from multi import M
+
+from .. import _core
+
+def test_abs2():
+	assert _core.abs2(-2) == 4
+	assert np.abs(_core.abs2(3.1) - 9.61) < 1e-13
+
+def test_gen_seed():
+	seeds = [_core.gen_seed() for i in range(100)]
+	assert len(seeds) == len(set(seeds))
+	seeds = M(_core.gen_seed, n=100)()
+	assert len(seeds) == len(set(seeds))
+

@@ -27,10 +27,10 @@
 raise ImportError
 
 import numpy as np
-from oidata import Oidata
-from oimodel import Oimodel
-from oifiting import Oifiting
-from _oiunitmodels import *
+from .oidata import Oidata
+from .oimodel import Oimodel
+from .oifiting import Oifiting
+from ._oiunitmodels import *
 try:
     import astropy.io.fits as pf
 except ImportError:

@@ -25,8 +25,8 @@
 ###############################################################################
 
 
-import oipriors as oipriors
-import _core
+from . import oipriors as oipriors
+from . import _core
 _np = _core.np
 
 from time import strftime as _strftime
@@ -180,7 +180,7 @@ class Oimainobject(object):
         """
         Returns a list of the parameters values, according to the parameter keys order
         """
-        return [getattr(self, item, _np.mean(getattr(self, item+"_bounds"))) for item in self._pkeys]
+        return [getattr(self, item) if hasattr(self, item) else _np.mean(getattr(self, item+"_bounds")) for item in self._pkeys]
     @params.setter
     def params(self, value):
         raise AttributeError("Read-only")

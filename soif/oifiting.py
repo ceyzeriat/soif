@@ -33,9 +33,9 @@ except ImportError:
 from time import sleep as _sleep
 from time import time as _time
 
-from oimodel import _likelihood
+from .oimodel import _likelihood
 
-import _core
+from . import _core
 _np = _core.np
 
 from MCres import MCres as _MCres

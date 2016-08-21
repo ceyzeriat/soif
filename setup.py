@@ -22,31 +22,34 @@ version = re.findall(r"__version__ *= *\"(.*?)\"", m)[0]
 
 
 setup(
-    name="soif",
-    version=version,
-    author="Guillaume Schworer",
-    author_email="guillaume.schworer@obspm.fr",
-    packages=["soif"],
-    url="https://github.com/ceyzeriat/soif/",
-    license="GNU General Public License v3 or later (GPLv3+)",
-    description="Software for Optical Interferometry Fitting",
-    long_description=open("README.rst").read() + "\n\n"
+    name = "soif",
+    version = version,
+    author = "Guillaume Schworer",
+    author_email = "guillaume.schworer@obspm.fr",
+    packages = ["soif"],
+    url = "https://github.com/ceyzeriat/soif/",
+    license = "GNU General Public License v3 or later (GPLv3+)",
+    description = "Software for Optical Interferometry Fitting",
+    long_description = open("README.rst").read() + "\n\n"
                     + "Changelog\n"
                     + "---------\n\n"
                     + open("HISTORY.rst").read(),
-    package_data={"": ["LICENSE", "AUTHORS.rst"]},
-    include_package_data=True,
-    install_requires=["numpy","emcee","corner","patiencebar","MCres"],
+    package_data = {"": ["LICENSE", "AUTHORS.rst"]},
+    include_package_data = True,
+    install_requires = ["numpy","emcee","corner","patiencebar","MCres"],
     download_url = 'https://github.com/ceyzeriat/soif/tree/master/dist',
     keywords = ['astronomy','interferometry','data','processing','reduction','model','fitting','optical'],
-    classifiers=[
+    classifiers = [
         "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Developers",
+        'Intended Audience :: Education',
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Topic :: Documentation :: Sphinx",
+        "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Astronomy"
     ],
 )

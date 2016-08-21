@@ -221,9 +221,8 @@ def aslist(data, numpy=False, integer=False):
     return ret
 
 def clean_name(txt):
-    authorized=range(65,91)+range(48,58)+range(97,123)
-    txt = str(txt)
-    return "".join([(ord(letter) in authorized)*letter for letter in txt])
+    authorized = range(65,91)+range(48,58)+range(97,123)
+    return "".join([letter if (ord(letter) in authorized) else "" for letter in str(txt)])
 
 
 def colorbar(cmap="jet", cm_min=0, cm_max=1):

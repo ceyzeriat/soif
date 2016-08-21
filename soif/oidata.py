@@ -32,8 +32,8 @@ try:
 except ImportError:
     import pyfits as _pf
 
-import oiexception as _exc
-import _core
+from . import oiexception as _exc
+from . import _core
 _np = _core.np
 
 
@@ -183,8 +183,7 @@ class OidataEmpty(object):
     
     def __bool__(self):
         return self._has
-    def __nonzero__(self):
-        return self.__bool__()
+    __nonzero__ = __bool__
 
     def __getitem__(self, key):
         return getattr(self, "_"+key)
@@ -591,7 +590,7 @@ class Oifits(object):
         ret = []
         for key in _core.DATAKEYSLOWER:
             thedata = getattr(self, key)
-            if thedata:
+            if thedata._has:
                 retdbl = isinstance(viscomp, (tuple, list))
                 if retdbl:
                     viscomp, flx = viscomp

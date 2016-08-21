@@ -38,8 +38,8 @@ try:
 except ImportError:
     import pyfits as _pf
 
-import oiexception as _exc
-import _core
+from . import oiexception as _exc
+from . import _core
 _np = _core.np
 
 
