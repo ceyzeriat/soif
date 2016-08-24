@@ -30,13 +30,15 @@ import numpy as np
 from .oidata import Oidata
 from .oimodel import Oimodel
 from .oifiting import Oifiting
-from ._oiunitmodels import *
+from .oiunitmodels import *
 try:
     import astropy.io.fits as pf
 except ImportError:
     import pyfits as pf
 
 from MCres import FakeSampler
+
+__all__ = ['load', 'loaddata', 'loadmodel', 'loadobj']
 
 # known bug, doesn't keep the dataflag mask correct at loading
 # doesn't save the prior type, just the lower and higher bounds

@@ -25,25 +25,26 @@
 ###############################################################################
 
 
-from .oimainobject import Oimainobject as _Oimainobject
-from . import _core
-np = _core.np
+from .oimainobject import Oimainobject as Oimainobject
+from . import core
+np = core.np
 
-
-_objects = ['PointSource', 'UniformDisk', 'UniformDisk2D', 'UniformRing', 'UniformRing2D', 'Gauss', 'Gauss2D', 'GaussDiff2D', 'GaussDiff', 'BGimage', 'UniformDisk2DLinCR', 'UniformDiskLinCR']
 
 """
 Must return
 a dict, with keys:
 
 """
+_objects = ['PointSource', 'UniformDisk', 'UniformDisk2D', 'UniformRing', 'UniformRing2D', 'Gauss', 'Gauss2D', 'GaussDiff2D', 'GaussDiff', 'BGimage', 'UniformDisk2DLinCR', 'UniformDiskLinCR', 'Background']
+
+__all__ = _objects + ['_objects']
 
 
-class PointSource(_Oimainobject):
+class PointSource(Oimainobject):
     _keys = ['sep','pa','cr']
 
-    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
-        super(PointSource, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(PointSource, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -60,11 +61,11 @@ class PointSource(_Oimainobject):
         return im
 
 
-class UniformRing(_Oimainobject):
+class UniformRing(Oimainobject):
     _keys = ['sep','pa','cr','rin','wid']
 
-    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
-        super(UniformRing, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(UniformRing, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -75,8 +76,8 @@ class UniformRing(_Oimainobject):
         rout = self.rin + self.wid
 
         # analytical fourier transform for a uniform disk minus another uniform disk
-        visout = _core.airy(2*rout*_core.MAS2RAD, blwl)
-        visin = _core.airy(2*self.rin*_core.MAS2RAD, blwl)
+        visout = core.airy(2*rout*core.MAS2RAD, blwl)
+        visin = core.airy(2*self.rin*core.MAS2RAD, blwl)
 
         rout2 = rout*rout
         rin2 = self.rin*self.rin
@@ -109,8 +110,8 @@ class UniformRing2D(UniformRing):
         blwl = np.sqrt(U*U+V*V)/wl
 
         # analytical fourier transform for a uniform disk minus another uniform disk
-        visout = _core.airy(2*rout*_core.MAS2RAD, blwl)
-        visin = _core.airy(2*self.rin*_core.MAS2RAD, blwl)
+        visout = core.airy(2*rout*core.MAS2RAD, blwl)
+        visin = core.airy(2*self.rin*core.MAS2RAD, blwl)
 
         rout2 = rout*rout
         rin2 = self.rin*self.rin
@@ -127,13 +128,13 @@ class UniformRing2D(UniformRing):
         return theim/(theim.sum()*self.cr)
 
 
-class BGimage(_Oimainobject):
+class BGimage(Oimainobject):
     _keys = ['cr']
     _save = ['_img', 'masperpx', 'negRA']
 
     def __init__(self, name, img=None, masperpx=None, priors={}, bounds={}, negRA=False, totFlux=None, *args, **kwargs):
         super(BGimage, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
-        self.masperpx = float(masperpx)
+        self._masperpx = float(masperpx)
         self.negRA = bool(negRA)
         if img is None: img = kwargs.get('_img')
         self.totFlux = img.sum() if totFlux is None else float(totFlux)
@@ -146,7 +147,7 @@ class BGimage(_Oimainobject):
 
     def _prepare(self, oidata):
         if self._prepared: return
-        self._compvis = _core.calcImgVis(img=self.img, masperpx=self.masperpx, u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'])
+        self._compvis = core.calcImgVis(img=self.img, masperpx=self.masperpx, u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'])
         self._prepared = True
 
     def prepare(self, oidata, force=False):
@@ -170,7 +171,7 @@ class BGimage(_Oimainobject):
         if nbpts is None:
             nbpts = int(2.*sepmax/masperpx)
             sepmax = 0.5*nbpts*masperpx
-        if np.abs(1-masperpx/self._masperpx)*nbpts > 1: raise Exception("different masperpx parameter, can't rescale image")
+        if np.abs(1-masperpx/self._masperpx)*nbpts > 1: raise Exception("Different masperpx value, can't rescale image")
         if self.img.shape[0] > nbpts:
             deb_x = self.img.shape[0]//2 - nbpts//2
             deb_y = self.img.shape[1]//2 - nbpts//2
@@ -189,11 +190,33 @@ class BGimage(_Oimainobject):
         return self.masperpx
 
 
-class UniformDisk(_Oimainobject):
+class Background(Oimainobject):
+    _keys = ['cr']
+
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(UniformDisk, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
+
+    def _calcCompVis(self, u, v, wl, blwl, oidata=None):
+        """
+        Calculates the complex visibilities of the object
+        """
+        return np.zeros(u.shape, dtype=complex), 1./self.cr
+
+    def image(self, sepmax=None, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+        return np.zeros((nbpts, nbpts))
+        #x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
+        #masperpx = 2*sepmax/nbpts
+        #ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
+        #theim = np.zeros((nbpts,nbpts))
+        #theim[np.hypot(x-ra,y-dec)<=0.5*self.diam/masperpx] = 1
+        #return theim/(theim.sum()*self.cr)
+
+
+class UniformDisk(Oimainobject):
     _keys = ['sep','pa','cr','diam']
 
-    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
-        super(UniformDisk, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(UniformDisk, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
 
     def _calcCompVis(self, u, v, wl, blwl, oidata=None):
         """
@@ -202,7 +225,7 @@ class UniformDisk(_Oimainobject):
         oscil = self.oscil(u, v, wl)
 
         # analytical fourier transform for a uniform disk
-        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+        vis = core.airy(self.diam*core.MAS2RAD, blwl)
 
         return oscil*vis, 1./self.cr
 
@@ -211,7 +234,7 @@ class UniformDisk(_Oimainobject):
         masperpx = 2*sepmax/nbpts
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         theim = np.zeros((nbpts,nbpts))
-        theim[np.hypot(x-ra,y-dec)<=self.diam/masperpx] = 1
+        theim[np.hypot(x-ra,y-dec)<=0.5*self.diam/masperpx] = 1
         return theim/(theim.sum()*self.cr)
 
 
@@ -232,7 +255,7 @@ class UniformDisk2D(UniformDisk):
         blwl = np.sqrt(U*U+V*V)/wl
 
         # analytical fourier transform for a uniform disk
-        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+        vis = core.airy(self.diam*core.MAS2RAD, blwl)
 
         return oscil*vis, 1./self.cr
 
@@ -246,7 +269,7 @@ class UniformDisk2D(UniformDisk):
         return theim/(theim.sum()*self.cr)
 
 
-class GaussDiff(_Oimainobject):
+class GaussDiff(Oimainobject):
     _keys = ['sep','pa','cr','sig','dif']
 #    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
 #        super(GaussDiff, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
@@ -259,8 +282,8 @@ class GaussDiff(_Oimainobject):
         sigout = self.sig + self.dif
         
         # analytical fourier transform for a 1D gaussian blob
-        ggin = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*self.sig)*blwl)
-        ggout = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*sigout)*blwl)
+        ggin = core.gauss1Dsimple((core.PISQRT2*core.MAS2RAD*self.sig)*blwl)
+        ggout = core.gauss1Dsimple((core.PISQRT2*core.MAS2RAD*sigout)*blwl)
 
         nin = self.sig*self.sig
         nout = sigout*sigout
@@ -270,7 +293,7 @@ class GaussDiff(_Oimainobject):
     def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
-        theim = _core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*self.sig/sepmax) - _core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*(self.sig+self.dif)/sepmax)
+        theim = core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*self.sig/sepmax) - core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*(self.sig+self.dif)/sepmax)
         return theim/(theim.sum()*self.cr) # renorm just in case of bad sampling, so the integral is perfectly 1
 
 
@@ -291,8 +314,8 @@ class GaussDiff2D(GaussDiff):
         
 
         # analytical fourier transform for a 1D gaussian blob
-#        ggin = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
-#        ggout = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*sigout))
+#        ggin = core.gauss1D(U, V, 1., 0., 0., wl/(core.DEUXPI*core.MAS2RAD*self.sig))
+#        ggout = core.gauss1D(U, V, 1., 0., 0., wl/(core.DEUXPI*core.MAS2RAD*sigout))
 
 #        nin = self.sig*self.sig
 #        nout = sigout*sigout
@@ -303,11 +326,11 @@ class GaussDiff2D(GaussDiff):
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         x, y = self._shearCoord(x-ra, y-dec)
-        theim = _core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*self.sig/sepmax) - _core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*(self.sig+self.dif)/sepmax)
+        theim = core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*self.sig/sepmax) - core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*(self.sig+self.dif)/sepmax)
         return theim/(theim.sum()*self.cr) # renorm just in case of bad sampling, so the integral is perfectly 1
 
 
-class Gauss(_Oimainobject):
+class Gauss(Oimainobject):
     _keys = ['sep','pa','cr','sig']
 #    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
 #        super(Gauss, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
@@ -319,16 +342,16 @@ class Gauss(_Oimainobject):
         oscil = self.oscil(u, v, wl)
 
         # analytical fourier transform for a 1D gaussian blob
-        #gg = _core.gauss1D(u, v, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
-        gg = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*self.sig)*blwl)
+        #gg = core.gauss1D(u, v, 1., 0., 0., wl/(core.DEUXPI*core.MAS2RAD*self.sig))
+        gg = core.gauss1Dsimple((core.PISQRT2*core.MAS2RAD*self.sig)*blwl)
 
         return oscil*gg, 1./self.cr
 
     def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
-        theim = _core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*self.sig/sepmax)
-        # amp = 1./(self.cr*_core.DEUXPI*self.sig**2)*(2.*sepmax/(nbpts-1))**2
+        theim = core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*self.sig/sepmax)
+        # amp = 1./(self.cr*core.DEUXPI*self.sig**2)*(2.*sepmax/(nbpts-1))**2
         return theim/(theim.sum()*self.cr) # renorm just in case of bad sampling, so the integral is perfectly 1
 
 
@@ -346,8 +369,8 @@ class Gauss2D(Gauss):
         U, V = self._shearCoord(u,v, fourier=True)
 
         # analytical fourier transform for a 1D gaussian blob
-        #gg = _core.gauss1D(U, V, 1., 0., 0., wl/(_core.DEUXPI*_core.MAS2RAD*self.sig))
-        gg = _core.gauss1Dsimple((_core.PISQRT2*_core.MAS2RAD*self.sig)*np.sqrt(U*U+V*V)/wl)
+        #gg = core.gauss1D(U, V, 1., 0., 0., wl/(core.DEUXPI*core.MAS2RAD*self.sig))
+        gg = core.gauss1Dsimple((core.PISQRT2*core.MAS2RAD*self.sig)*np.sqrt(U*U+V*V)/wl)
 
         return oscil*gg, 1./self.cr
 
@@ -355,7 +378,7 @@ class Gauss2D(Gauss):
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         x, y = self._shearCoord(x-ra, y-dec)
-        theim = _core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*self.sig/sepmax)
+        theim = core.gauss1D(x, y, 1., 0., 0., 0.5*nbpts*self.sig/sepmax)
         return theim/(theim.sum()*self.cr) # another step of normalization, in case the sum is not really =1 (bad sampling)
 
 
@@ -368,7 +391,7 @@ class UniformDiskLinCR(UniformDisk):
         """
         oscil = self.oscil(u, v, wl)
 
-        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+        vis = core.airy(self.diam*core.MAS2RAD, blwl)
 
         flx = oidata._wlspan / ((wl - oidata._wlmin) * (self.cr2 - self.cr1) + self.cr1 * oidata._wlspan)
 
@@ -393,14 +416,14 @@ class UniformDisk2DLinCR(UniformDiskLinCR):
         blwl = np.sqrt(U*U+V*V)/wl
 
         # analytical fourier transform for a uniform disk
-        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+        vis = core.airy(self.diam*core.MAS2RAD, blwl)
 
         flx = oidata._wlspan / ((wl - oidata._wlmin) * (self.cr2 - self.cr1) + self.cr1 * oidata._wlspan)
 
         return oscil*vis, flx
 
 """
-class PreObject(_Oimainobject):
+class PreObject(Oimainobject):
     _keys = ['cr']
 
     def __init__(self, name, data, au, px, keysInd, keysVal={}, priors={}, bounds={}, **kwargs):
@@ -430,7 +453,7 @@ class PreObject(_Oimainobject):
 
 
 
-class PointSourceLinCR(_Oimainobject):
+class PointSourceLinCR(Oimainobject):
     _keys = ['sep','pa','cr1','cr2']
 
     def __init__(self, name, priors={}, bounds={}, **kwargs):
@@ -449,7 +472,7 @@ class PointSourceLinCR(_Oimainobject):
         pass
 
 
-class UniformDiskLinCR(_Oimainobject):
+class UniformDiskLinCR(Oimainobject):
     _keys = ['sep','pa','cr1','cr2','diam']
 
     def __init__(self, name, priors={}, bounds={}, **kwargs):
@@ -459,7 +482,7 @@ class UniformDiskLinCR(_Oimainobject):
         "Calculates the complex visibilities of the object"
         oscil = self.oscil(u, v, wl)
 
-        vis = _core.airy(self.diam*_core.MAS2RAD, blwl)
+        vis = core.airy(self.diam*core.MAS2RAD, blwl)
 
         flx = oidata._wlspan / ((wl - oidata._wlmin) * (self.cr2 - self.cr1) + self.cr1 * oidata._wlspan)
 
@@ -472,7 +495,7 @@ class Spectral(object):
         self._spectralKey = str(spectralKey)
         self._keys = list(self._keys) # makes a copy
         self._keys.remove(self._spectralKey)
-        self._wlspectral = np.sort(_core.unique(ar=np.ravel(oidata.uvwl['wl']), precision=oidata.significant_figures))
+        self._wlspectral = np.sort(core.unique(ar=np.ravel(oidata.uvwl['wl']), precision=oidata.significant_figures))
         self.nspectral = self._wlspectral.size
         self.wlspectral = {}
         self._wlspectralindex = {}

@@ -24,41 +24,43 @@
 #
 ###############################################################################
 
-import matplotlib.pyplot as _plt
+import matplotlib.pyplot as plt
 try:
-    from emcee import EnsembleSampler as _emceeEnsembleSampler
-    _EMCEE = True
+    from emcee import EnsembleSampler as emceeEnsembleSampler
+    EMCEE = True
 except ImportError:
-    _EMCEE = False
-from time import sleep as _sleep
-from time import time as _time
+    EMCEE = False
+from time import sleep
+from time import time
 
-from .oimodel import _likelihood
+from .oimodel import likelihood
 
-from . import _core
-_np = _core.np
+from . import core
+np = core.np
 
-from MCres import MCres as _MCres
-from patiencebar import Patiencebar as _Patiencebar
+from MCres import MCres
+from patiencebar import Patiencebar
+
+__all__ = ['Oifiting']
 
 
-class Oifiting(_MCres):
+class Oifiting(MCres):
     def __init__(self, model, nwalkers=100, niters=500, burnInIts=100, threads=1, customlike=None, **kwargs):
         if 'sampler' in kwargs.keys():
             self._init(sampler=kwargs.pop('sampler'), paramstr=self.model.paramstr, nwalkers=self.nwalkers, niters=self.niters, burnInIts=self.burnInIts)
-        elif _EMCEE:
+        elif EMCEE:
             self.model = model
             self.nwalkers = int(nwalkers)
             self.niters = 0
             self.burnInIts = int(0 if burnInIts is None else burnInIts)
-            self.sampler = _emceeEnsembleSampler(self.nwalkers, self.model.nparams, _likelihood, args=[self.model, customlike, kwargs], threads=max(1, int(threads)))
+            self.sampler = emceeEnsembleSampler(self.nwalkers, self.model.nparams, likelihood, args=[self.model, customlike, kwargs], threads=max(1, int(threads)))
             self.run(niters=int(niters), burnInIts=self.burnInIts)
 
     def _init(self, sampler, paramstr=None, nwalkers=None, niters=None, burnInIts=None):
         super(Oifiting, self)._init(sampler=self.sampler, paramstr=self.model.paramstr, nwalkers=self.nwalkers, niters=self.niters, burnInIts=self.burnInIts)
 
     def _info(self):
-        return _core.font.blue+"<SOIF Fit>%s\n %i walkers, %s burn-in, %s iters\n%s"%(_core.font.normal, self.nwalkers, self.burnInIts, self.niters, str(self.model))
+        return core.font.blue+"<SOIF Fit>%s\n %i walkers, %s burn-in, %s iters\n%s"%(core.font.normal, self.nwalkers, self.burnInIts, self.niters, str(self.model))
 
 
     def run(self, niters, burnInIts=0):
@@ -66,18 +68,18 @@ class Oifiting(_MCres):
         Start a MCMC simulation on as many CPUs as threads parameter. Use customlike parameter to use a custom likelihood function. This function must accept modeledData (ndarray) and model (Oifiting) as input parameters. It will also be given the kwargs that you give to this runmc function.
             e.g.: mycustomlike(modeledData, model, **kwargs)
         '''
-        if not _EMCEE:
-            print(_core.font.red+"Can't run more iterations, you don't have emcee installed"+_core.font.normal)
+        if not EMCEE:
+            print(core.font.red+"Can't run more iterations, you don't have emcee installed"+core.font.normal)
             return
         if self.model.nparams==0:
-            print(_core.font.red+"ERROR: All parameters are set, there is no reason for MCMC"+_core.font.normal)
+            print(core.font.red+"ERROR: All parameters are set, there is no reason for MCMC"+core.font.normal)
             return
 
         self.niters = getattr(self, "niters", 0) + int(niters)
 
-        pb = _Patiencebar()
-        print(_core.font.green+'Running emcee'+_core.font.normal)
-        t0 = _time()
+        pb = Patiencebar()
+        print(core.font.green+'Running emcee'+core.font.normal)
+        t0 = time()
 
         if burnInIts>0:
             pb.reset(valmax=int(burnInIts), title="Burn in")
@@ -94,8 +96,8 @@ class Oifiting(_MCres):
         crackit = self.sampler.sample(res[0], iterations=int(niters), rstate0=res[2])
         for res in crackit: pb.update()
 
-        _sleep(0.1)
-        print('Time elapsed = %.2fs' %(_time()-t0))
+        sleep(0.1)
+        print('Time elapsed = %.2fs' %(time()-t0))
         print("Mean acceptance rate: %.3f" % (self.sampler.acceptance_fraction.mean()))
 
         self._p0 = res[0]
@@ -108,13 +110,13 @@ class Oifiting(_MCres):
         Return a 2D histogram of the MC chain, showing the walker density per bin
         """
         if radec:
-            fig, ax = _core.astroskyplot(bin_y[-1], polar=polar, unit='mas')
+            fig, ax = core.astroskyplot(bin_y[-1], polar=polar, unit='mas')
         else:
             if polar:
-                fig, ax = _plt.subplots(subplot_kw={'projection':'polar'})
+                fig, ax = plt.subplots(subplot_kw={'projection':'polar'})
                 ax.set_theta_zero_location('N')
             else:
-                fig, ax = _plt.subplots()
+                fig, ax = plt.subplots()
         self._map(param_x=param_x, param_y=param_y, fig=fig, ax=ax, bin_x=bin_x, bin_y=bin_y, cmap=cmap, cm_min=cm_min, cm_max=cm_max, axescolor=axescolor, polar=polar, showmax=showmax, **kwargs)
 
 
@@ -123,14 +125,14 @@ class Oifiting(_MCres):
         Return a 2D histogram of the MC chain, showing the best loglikelihood per bin
         """
         if radec:
-            fig, ax = _core.astroskyplot(bin_y[-1], polar=polar, unit='mas')
+            fig, ax = core.astroskyplot(bin_y[-1], polar=polar, unit='mas')
         else:
             if polar:
-                fig, ax = _plt.subplots(subplot_kw={'projection':'polar'})
+                fig, ax = plt.subplots(subplot_kw={'projection':'polar'})
                 ax.set_theta_zero_location('N')
             else:
-                fig, ax = _plt.subplots()
-        self._map(param_x=param_x, param_y=param_y, fig=fig, ax=ax, data=self.lnprob.compressed(), method=_np.max, bin_x=bin_x, bin_y=bin_y, cmap=cmap, cm_min=cm_min, cm_max=cm_max, axescolor=axescolor, polar=polar, showmax=showmax, **kwargs)
+                fig, ax = plt.subplots()
+        self._map(param_x=param_x, param_y=param_y, fig=fig, ax=ax, data=self.lnprob.compressed(), method=np.max, bin_x=bin_x, bin_y=bin_y, cmap=cmap, cm_min=cm_min, cm_max=cm_max, axescolor=axescolor, polar=polar, showmax=showmax, **kwargs)
 
 
     def save(self, name, clobber=False):
@@ -149,7 +151,7 @@ class Oifiting(_MCres):
         Datatype in ['vis2', 'phase', 'vis']
         """
         allmodes = ['vis2', 'phase', 'vis']
-        calctrick = {'vis2':_core.abs2, 'phase':_np.angle, 'vis':_np.abs}
+        calctrick = {'vis2':core.abs2, 'phase':np.angle, 'vis':np.abs}
         cm_min_orig = cm_min
         cm_max_orig = cm_max
         if datatype.lower() == 'all':
@@ -159,11 +161,11 @@ class Oifiting(_MCres):
             if self.model.oidata.vis2: datatype.append('vis2')
             if self.model.oidata.visamp or self.model.oidata.t3amp: datatype.append('vis')
             if self.model.oidata.t3phi or self.model.oidata.visphi: datatype.append('phase')
-        elif _np.iterable(datatype)==1 and not isinstance(datatype, str):
+        elif np.iterable(datatype)==1 and not isinstance(datatype, str):
             datatype = [str(dum).lower() for dum in datatype if dum.lower() in allmodes]
         else:
             datatype = [str(dum).lower() for dum in [str(datatype)] if dum.lower() in allmodes]
-        if blmax is None: blmax = _np.hypot(self.model.oidata.uvwl['v'], self.model.oidata.uvwl['u']).max()
+        if blmax is None: blmax = np.hypot(self.model.oidata.uvwl['v'], self.model.oidata.uvwl['u']).max()
         if wl is None: wl = self.model.oidata.uvwl['wl'].min()
         if params is None: params = self.best
         datashown = self.model.compuvimage(blmax=blmax, wl=wl, params=params, nbpts=nbpts)
@@ -173,12 +175,12 @@ class Oifiting(_MCres):
             if ret: retval.append(data)
             if cm_min_orig is None: cm_min = data.min()
             if cm_max_orig is None: cm_max = data.max()
-            cmap, norm, mappable = _core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
-            thefig, ax = _core.astroskyplot(blmax, polar=False, unit='m')
+            cmap, norm, mappable = core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
+            thefig, ax = core.astroskyplot(blmax, polar=False, unit='m')
             ax.matshow(data, origin='lower', extent=[-blmax,blmax,-blmax,blmax], cmap=cmap, norm=norm)
             if withdata:
                 thefig.axes.scatter(getattr(self.model.oidata, datatypeloop).u, getattr(self.model.oidata, datatypeloop).v, c=getattr(self.model.oidata, datatypeloop).data, cmap=cmap, norm=norm)
-            _plt.colorbar(mappable)
+            plt.colorbar(mappable)
             thefig.axes.set_title(datatypeloop)
         if ret: return retval
 
@@ -189,18 +191,18 @@ class Oifiting(_MCres):
 
 
     def imagefft(self, sepmax=None, wl=None, params=None, nbpts=101, cmap='jet', cm_min=None, cm_max=None, ret=False, visu=None, **visuargs):
-        if sepmax is None: sepmax = 1000*nbpts/(2*_np.hypot(self.model.oidata.uvwl['v'], self.model.oidata.uvwl['u']).max())
+        if sepmax is None: sepmax = 1000*nbpts/(2*np.hypot(self.model.oidata.uvwl['v'], self.model.oidata.uvwl['u']).max())
         if wl is None: wl = self.model.oidata.uvwl['wl'].min()
         if params is None: params = self.best
-        if visu is None: visu = _np.abs
+        if visu is None: visu = np.abs
         #toplot = visu(self.model.compimage(sepmax=sepmax, wl=wl, params=params, nbpts=nbpts), **visuargs)
-        toplot = _np.abs(_np.fft.fftshift(_np.fft.ifft2(self.model.compuvimage(blmax=nbpts*2*sepmax*_core.MAS2RAD/(_np.pi*wl), wl=wl, params=params, nbpts=nbpts))))
+        toplot = np.abs(np.fft.fftshift(np.fft.ifft2(self.model.compuvimage(blmax=nbpts*2*sepmax*core.MAS2RAD/(np.pi*wl), wl=wl, params=params, nbpts=nbpts))))
         if cm_min is None: cm_min = toplot.min()
         if cm_max is None: cm_max = toplot.max()
-        cmap, norm, mappable = _core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
-        thefig, ax = _core.astroskyplot(sepmax, polar=False, unit='mas')
+        cmap, norm, mappable = core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
+        thefig, ax = core.astroskyplot(sepmax, polar=False, unit='mas')
         ax.matshow(toplot, origin='lower', extent=[-sepmax,sepmax,-sepmax,sepmax], cmap=cmap, norm=norm)
-        _plt.colorbar(mappable)
+        plt.colorbar(mappable)
         if ret: return toplot
 
 

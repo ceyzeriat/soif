@@ -38,19 +38,21 @@ print(_disclaimer)
 A package that includes oifits reading and fitting tools
 """
 
-from . import oidata
-from . import oipriors
-from . import oimodel
+from .oidata import *
+from .oipriors import *
+from .oimodel import *
 try:
-	from . import oifiting
+	from .oifiting import *
 except ImportError:
 	pass
-from . import oiunitmodels
+from .oiunitmodels import *
 try:
-	from . import oiload
+	from .oiload import *
 except ImportError:
 	pass
+try:
+	from .oipriors import *
+except:
+	pass
+
 from ._version import __version__, __major__, __minor__, __micro__
-
-#import oipriors
-

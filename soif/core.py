@@ -39,6 +39,8 @@ from matplotlib.cm import ScalarMappable as cmScalarMappable
 from matplotlib.pyplot import Normalize as matplotlibpyplotNormalize
 from matplotlib.pyplot import subplots as matplotlibpyplotsubplots
 
+__all__ = []
+
 
 DATATYPEEXTNAMES = {'OI_T3':'T3', 'OI_VIS2':'VIS2', 'OI_VIS':'VIS'}
 DATAEXTNAMES = {'OI_T3':'T3PHI', 'OI_VIS2':'VIS2DATA', 'OI_VIS':'VISPHI'}
@@ -395,7 +397,7 @@ def gauss1Dsimple(blwlsigma):
     return np.exp(-blwlsigma*blwlsigma)
 
 
-def BB(teff, wl, rel=False):
+def bb(teff, wl, rel=False):
     """
     Give an effective temerature in K and a wavelength in m
     Returns the relative flux emitted (with respect to another temperature)

@@ -14,7 +14,7 @@
 
 import sys
 import os
-from .soif import __version__, __major__, __minor__, __micro__
+from ..soif import __version__, __major__, __minor__, __micro__
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -47,16 +47,16 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'soif'
-copyright = u'2015, Guillaume Schworer'
+copyright = u'2016, Guillaume Schworer'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '0'
+version = "%d.%d"%(__major__, __minor__)
 # The full version, including alpha/beta/rc tags.
-version = "v%d.%d.%d"%(__major__, __minor__, __micro__)
+version = "%d.%d.%d"%(__major__, __minor__, __micro__)
 # The full version, including alpha/beta/rc tags.
 release = __version__
 

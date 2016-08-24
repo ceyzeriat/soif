@@ -25,16 +25,19 @@
 ###############################################################################
 
 
-from . import oipriors as oipriors
-from . import _core
-_np = _core.np
+from . import oipriors
+from . import core
+np = core.np
 
-from time import strftime as _strftime
-from time import time as _time
+from time import strftime
+from time import time
 try:
-    import astropy.io.fits as _pf
+    import astropy.io.fits as pf
 except ImportError:
-    import pyfits as _pf
+    import pyfits as pf
+
+
+__all__ = ['Oimainobject']
 
 
 class Oimainobject(object):
@@ -45,12 +48,12 @@ class Oimainobject(object):
         self._pkeys = []
         self._nparams = 0
         self._vkeys = []
-        self._pmask = _np.zeros(self._nkeys, dtype=bool)
-        self._vmask = _np.zeros(self._nkeys, dtype=bool)
+        self._pmask = np.zeros(self._nkeys, dtype=bool)
+        self._vmask = np.zeros(self._nkeys, dtype=bool)
         for item in bounds.keys():
-            if item not in self._keys: print(_core.font.orange+"WARNING"+_core.font.normal+": Ignoring unknown bounds '%s' for object '%s'." % (item, name))
+            if item not in self._keys: print(core.font.orange+"WARNING"+core.font.normal+": Ignoring unknown bounds '%s' for object '%s'." % (item, name))
         for item in priors.keys():
-            if item not in self._keys: print(_core.font.orange+"WARNING"+_core.font.normal+": Ignoring unknown parameter '%s' for object '%s'." % (item, name))
+            if item not in self._keys: print(core.font.orange+"WARNING"+core.font.normal+": Ignoring unknown parameter '%s' for object '%s'." % (item, name))
         for i, item in enumerate(self._keys):
             found = False
             if item in priors.keys():
@@ -63,31 +66,31 @@ class Oimainobject(object):
                     raise Exception("Bounds for object '%s', parameter '%s' has only one bound: %s." % (name, item, str(bounds[item])))
                 #set basic parameters
                 setattr(self, item+"_bounds", list(map(float, bounds[item][:2])))
-                prior_range = _np.abs(getattr(self, item+"_bounds")[1]-getattr(self, item+"_bounds")[0])*1.
-                allkwargs = {'prior_bounds': getattr(self, item+"_bounds"), 'prior_range': prior_range, 'prior_invrange': 1./prior_range, 'prior_lninvrange':-_np.log(prior_range)}
+                prior_range = np.abs(getattr(self, item+"_bounds")[1]-getattr(self, item+"_bounds")[0])*1.
+                allkwargs = {'prior_bounds': getattr(self, item+"_bounds"), 'prior_range': prior_range, 'prior_invrange': 1./prior_range, 'prior_lninvrange':-np.log(prior_range)}
                 if len(bounds[item])>=4:
                     if not isinstance(bounds[item][3], dict):
                         raise Exception("For object '%s', the fourth argument '%s' in prior definition must be a dictionary." %  (item, bounds[item][3]))
                     allkwargs.update(bounds[item][3])
                 setattr(self, item+"_prior_kwargs", allkwargs)
                 if len(bounds[item])==2:
-                    if verbose: print("%sWARNING%s: No prior probability function found for parameter '%s', object '%s'. Assuming Uniform." % (_core.font.orange, _core.font.normal, item, name))
-                    setattr(self, item+"_prior_lnfunc", _core.PriorWrapper(oipriors.lnuniform, makenorm=True, makeunlog=False, fct_log=True, **allkwargs)) # default is uniform on the range
-                    setattr(self, item+"_prior_func", _core.PriorWrapper(oipriors.uniform, makenorm=True, makeunlog=False, fct_log=False, **allkwargs)) # default is uniform on the range
+                    if verbose: print("%sWARNING%s: No prior probability function found for parameter '%s', object '%s'. Assuming Uniform." % (core.font.orange, core.font.normal, item, name))
+                    setattr(self, item+"_prior_lnfunc", core.PriorWrapper(oipriors.lnuniform, makenorm=True, makeunlog=False, fct_log=True, **allkwargs)) # default is uniform on the range
+                    setattr(self, item+"_prior_func", core.PriorWrapper(oipriors.uniform, makenorm=True, makeunlog=False, fct_log=False, **allkwargs)) # default is uniform on the range
                 if len(bounds[item])>=3:
                     if not callable(bounds[item][2]):
                         raise Exception("For object '%s', the third argument '%s' in bounds definition must be callable." %  (item, bounds[item][2]))
-                    setattr(self, item+"_prior_lnfunc", _core.PriorWrapper(bounds[item][2], makenorm=True, makeunlog=False, fct_log=True, **allkwargs))
+                    setattr(self, item+"_prior_lnfunc", core.PriorWrapper(bounds[item][2], makenorm=True, makeunlog=False, fct_log=True, **allkwargs))
                 if len(bounds[item]) in [3, 4]:
-                    if verbose: print(_core.font.orange+"WARNING"+_core.font.normal+": No bounds probability function found for parameter '%s', object '%s'. Initial values for this parameter will be obtained from the exponentiation of the log-probability function." % (item, name))
-                    setattr(self, item+"_prior_func", _core.PriorWrapper(bounds[item][2], makenorm=True, makeunlog=True, fct_log=False, **allkwargs))
+                    if verbose: print(core.font.orange+"WARNING"+core.font.normal+": No bounds probability function found for parameter '%s', object '%s'. Initial values for this parameter will be obtained from the exponentiation of the log-probability function." % (item, name))
+                    setattr(self, item+"_prior_func", core.PriorWrapper(bounds[item][2], makenorm=True, makeunlog=True, fct_log=False, **allkwargs))
                 if len(bounds[item])==5:
                     if not callable(bounds[item][4]):
                         raise Exception("For object '%s', the fifth argument '%s' in prior definition must be callable." %  (item, bounds[item][4]))
-                    setattr(self, item+"_prior_func", _core.PriorWrapper(bounds[item][4], makenorm=True, makeunlog=False, fct_log=False, **allkwargs))
+                    setattr(self, item+"_prior_func", core.PriorWrapper(bounds[item][4], makenorm=True, makeunlog=False, fct_log=False, **allkwargs))
                 # pre-computing of P0 stuff
                 x = getattr(getattr(self, item+"_prior_func"), 'x')
-                setattr(self, "_"+item+"_P0", _core.random_custom_pdf(x, getattr(self, item+"_prior_func")(x), size=False, renorm=True))
+                setattr(self, "_"+item+"_P0", core.random_custom_pdf(x, getattr(self, item+"_prior_func")(x), size=False, renorm=True))
                 self._pkeys.append(item)
                 self._pmask[i] = True
                 self._nparams += 1
@@ -110,7 +113,7 @@ class Oimainobject(object):
     def _info(self):
         anyparam = len(self._pkeys)>0
         anyvalue = len(self._vkeys)>0
-        ret = "%s<%s>%s '%s': %i params" % (_core.font.yellow, self.typ, _core.font.normal, self.name, self._nparams)
+        ret = "%s<%s>%s '%s': %i params" % (core.font.yellow, self.typ, core.font.normal, self.name, self._nparams)
         if anyparam: ret += " (" + ", ".join([item for item in self._pkeys]) + ")"
         if anyvalue: ret += "; " + ", ".join([item+"="+str(getattr(self, item)) for item in self._vkeys])
         return ret
@@ -120,15 +123,15 @@ class Oimainobject(object):
         return self._info()
 
     def show(self):
-        ret = "%s<%s>%s '%s': %i params" % (_core.font.yellow, self.typ, _core.font.normal, self.name, self._nparams)
+        ret = "%s<%s>%s '%s': %i params" % (core.font.yellow, self.typ, core.font.normal, self.name, self._nparams)
         if len(self._vkeys)>0:
             ret += "\nValues:"
             for item in self._vkeys:
-                ret += "\n  %s%s%s=%s" % (_core.font.orange, item, _core.font.normal, getattr(self, item))
+                ret += "\n  %s%s%s=%s" % (core.font.orange, item, core.font.normal, getattr(self, item))
         if len(self._pkeys)>0:
             ret += "\nParams:"
             for item in self._pkeys:
-                ret += "\n  %s%s%s=%s in [%s, %s]" % (_core.font.orange, item, _core.font.normal, getattr(self, item, "."), getattr(self, item+"_bounds")[0], getattr(self, item+"_bounds")[1])
+                ret += "\n  %s%s%s=%s in [%s, %s]" % (core.font.orange, item, core.font.normal, getattr(self, item, "."), getattr(self, item+"_bounds")[0], getattr(self, item+"_bounds")[1])
         print(ret)
 
     @property
@@ -143,14 +146,14 @@ class Oimainobject(object):
         """
         Returns (ra, dec) in radian from sep and pa
         """
-        seprad = self.sep*_core.MAS2RAD
-        return seprad*_np.sin(self.pa), seprad*_np.cos(self.pa)
+        seprad = self.sep*core.MAS2RAD
+        return seprad*np.sin(self.pa), seprad*np.cos(self.pa)
 
 
     def to_pospx(self, sepmax, nbpts, integer=False):
         norm = nbpts/(2.*sepmax)
-        ra, dec = self.sep*_np.asarray([_np.sin(self.pa), _np.cos(self.pa)])*norm+0.5*(nbpts-1)
-        if integer: ra, dec = _np.round([ra, dec]).astype(int)
+        ra, dec = self.sep*np.asarray([np.sin(self.pa), np.cos(self.pa)])*norm+0.5*(nbpts-1)
+        if integer: ra, dec = np.round([ra, dec]).astype(int)
         return ra, dec
 
     def _shearCoord(self, x, y, fourier=False):
@@ -158,21 +161,21 @@ class Oimainobject(object):
             rat = 1./self.rat
         else:
             rat = self.rat
-        cth = _np.cos(self.th)
-        sth = _np.sin(self.th)
+        cth = np.cos(self.th)
+        sth = np.sin(self.th)
         return (x*cth-y*sth)*rat, x*sth+y*cth
 
     def oscil(self, u, v, wl):
         if self.sep!=0:
-            ret = _np.zeros(u.shape, dtype=complex)
+            ret = np.zeros(u.shape, dtype=complex)
             dra, ddec = self.to_radec()
             # analytical fourier transform for a point source
-            oscil = -_core.DEUXPI*(u*dra + v*ddec) / wl
-            ret.real = _np.cos(oscil)
-            ret.imag = _np.sin(oscil)
+            oscil = -core.DEUXPI*(u*dra + v*ddec) / wl
+            ret.real = np.cos(oscil)
+            ret.imag = np.sin(oscil)
             return ret
         else:
-            return _np.ones(u.shape, dtype=complex)
+            return np.ones(u.shape, dtype=complex)
 
 
     @property
@@ -180,7 +183,7 @@ class Oimainobject(object):
         """
         Returns a list of the parameters values, according to the parameter keys order
         """
-        return [getattr(self, item) if hasattr(self, item) else _np.mean(getattr(self, item+"_bounds")) for item in self._pkeys]
+        return [getattr(self, item) if hasattr(self, item) else np.mean(getattr(self, item+"_bounds")) for item in self._pkeys]
     @params.setter
     def params(self, value):
         raise AttributeError("Read-only")
@@ -202,9 +205,9 @@ class Oimainobject(object):
         Returns a list of initial values for each parameter in the object, according the to parameter keys order
         """
         ret = []
-        randomizer = _core.gen_generator()
+        randomizer = core.gen_generator()
         for item in self._pkeys:
-            ret.append(_np.clip(getattr(self, "_"+item+"_P0")(randomizer.uniform()), a_min=getattr(self, item+"_bounds")[0], a_max=getattr(self, item+"_bounds")[1]))
+            ret.append(np.clip(getattr(self, "_"+item+"_P0")(randomizer.uniform()), a_min=getattr(self, item+"_bounds")[0], a_max=getattr(self, item+"_bounds")[1]))
         return ret
 
 
@@ -223,11 +226,11 @@ class Oimainobject(object):
         ext = '.oif.fits'
         if filename.find(ext)==-1: filename += ext
         if append:
-            hdulist = _pf.open(filename, mode='append')
+            hdulist = pf.open(filename, mode='append')
         else:
-            hdulist = _pf.HDUList()
-        hdu = _pf.PrimaryHDU()
-        hdu.header.set('DATE', _strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
+            hdulist = pf.HDUList()
+        hdu = pf.PrimaryHDU()
+        hdu.header.set('DATE', strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
         hdu.header.set('EXT', 'OBJ', comment='Type of information in the HDU')
         hdu.header.set('NAME', str(self.name), comment='Name of the object')
         hdu.header.set('TYP', str(self.typ), comment='Unit-model of the object')
@@ -244,19 +247,19 @@ class Oimainobject(object):
             hdu.header.set(k+'H',  getattr(self, k+"_bounds")[1], comment='Value of the higher prior-bound ')
         for i, k in enumerate(getattr(self, '_save', [])):
             hdu.header.set('SAVE'+str(i), k, comment='Name of the additional parameter '+str(i))
-            if not isinstance(getattr(self, k), (_np.ndarray, list, tuple)):
+            if not isinstance(getattr(self, k), (np.ndarray, list, tuple)):
                 hdu.header.set(k,  getattr(self, k), comment='Value of the additional parameter '+str(i))
             else:
                 hdu.header.set(k, 'ARRAY', comment='Value of the additional parameter '+str(i))
-                key = 'K'+str(int(_time()/100%1*10**7))
+                key = 'K'+str(int(time()/100%1*10**7))
                 hdu.header.set('KEY'+str(i), key, comment='Unique key to find the parameter value '+str(i))
-                paramhdu = _pf.PrimaryHDU()
-                paramhdu.header.set('DATE', _strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
+                paramhdu = pf.PrimaryHDU()
+                paramhdu.header.set('DATE', strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
                 paramhdu.header.set('NAME', str(self.name), comment='Name of the object')
                 paramhdu.header.set('TYP', str(self.typ), comment='Unit-model of the object')
                 paramhdu.header.set('SAVE'+str(i), k, comment='Name of the additional parameter '+str(i))
                 paramhdu.header.set('EXT', key, comment='Type of information in the HDU : unique key')
-                paramhdu.data = _np.asarray(getattr(self, k))
+                paramhdu.data = np.asarray(getattr(self, k))
                 hdulist.append(paramhdu)
 
         hdu.header.add_comment('Written by Guillaume SCHWORER')
