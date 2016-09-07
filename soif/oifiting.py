@@ -30,10 +30,9 @@ try:
     EMCEE = True
 except ImportError:
     EMCEE = False
-from time import sleep
-from time import time
+from time import sleep, time
 
-from .oimodel import likelihood
+from .oimodel import standardLikelihood
 
 from . import core
 np = core.np
@@ -53,7 +52,7 @@ class Oifiting(MCres):
             self.nwalkers = int(nwalkers)
             self.niters = 0
             self.burnInIts = int(0 if burnInIts is None else burnInIts)
-            self.sampler = emceeEnsembleSampler(self.nwalkers, self.model.nparams, likelihood, args=[self.model, customlike, kwargs], threads=max(1, int(threads)))
+            self.sampler = emceeEnsembleSampler(self.nwalkers, self.model.nparams, standardLikelihood, args=[self.model, customlike, kwargs], threads=max(1, int(threads)))
             self.run(niters=int(niters), burnInIts=self.burnInIts)
 
     def _init(self, sampler, paramstr=None, nwalkers=None, niters=None, burnInIts=None):

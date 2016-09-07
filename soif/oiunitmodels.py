@@ -35,7 +35,7 @@ Must return
 a dict, with keys:
 
 """
-_objects = ['PointSource', 'UniformDisk', 'UniformDisk2D', 'UniformRing', 'UniformRing2D', 'Gauss', 'Gauss2D', 'GaussDiff2D', 'GaussDiff', 'BGimage', 'UniformDisk2DLinCR', 'UniformDiskLinCR', 'Background']
+_objects = ['PointSource', 'UniformDisk', 'UniformDisk2D', 'UniformRing', 'UniformRing2D', 'Gauss', 'Gauss2D', 'GaussDiff2D', 'GaussDiff', 'BGimage', 'UniformDisk2DLinCR', 'UniformDiskLinCR', 'Background', 'UniformDiskBB']
 
 __all__ = _objects + ['_objects']
 
@@ -235,8 +235,37 @@ class UniformDisk(Oimainobject):
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         theim = np.zeros((nbpts,nbpts))
         theim[np.hypot(x-ra,y-dec)<=0.5*self.diam/masperpx] = 1
+        if theim.sum() == 0:
+            theim[np.round(x-ra,0).astype(int),np.round(y-dec,0).astype(int)] = 1
         return theim/(theim.sum()*self.cr)
 
+
+class UniformDiskBB(Oimainobject):
+    _keys = ['sep','pa','cr','diam','temp']
+
+#    def __init__(self, name, priors={}, bounds={}, *args, **kwargs):
+#        super(UniformDisk, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
+
+    def _calcCompVis(self, u, v, wl, blwl, oidata=None):
+        """
+        Calculates the complex visibilities of the object
+        """
+        oscil = self.oscil(u, v, wl)
+
+        # analytical fourier transform for a uniform disk
+        vis = core.airy(self.diam*core.MAS2RAD, blwl)
+
+        return oscil*vis, 1./self.cr
+
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+        x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
+        masperpx = 2*sepmax/nbpts
+        ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
+        theim = np.zeros((nbpts,nbpts))
+        theim[np.hypot(x-ra,y-dec)<=0.5*self.diam/masperpx] = 1
+        if theim.sum() == 0:
+            theim[np.round(x-ra,0).astype(int),np.round(y-dec,0).astype(int)] = 1
+        return theim/(theim.sum()*self.cr)
 
 
 class UniformDisk2D(UniformDisk):

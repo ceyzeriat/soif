@@ -89,11 +89,82 @@ LNDEUXPI = np.log(2*np.pi)
 PISURDEUX = 0.5*np.pi
 SECPERDAY = 86400.
 
+
+ALL_FILTERS = { 'U':{'mean_wl':3.60e-7, 'delta_wl':5.40e-8, 'flux_jansky':1810, 'flux_wm2m':4.186e-2, 'start_wl':3.60e-7-5.40e-8*0.5, 'end_wl':3.60e-7+5.40e-8*0.5},
+                'B':{'mean_wl':4.40e-7, 'delta_wl':9.68e-8, 'flux_jansky':4260, 'flux_wm2m':6.596e-2, 'start_wl':4.40e-7-9.68e-8*0.5, 'end_wl':4.40e-7+9.68e-8*0.5},
+                'V':{'mean_wl':5.50e-7, 'delta_wl':8.80e-8, 'flux_jansky':3540, 'flux_wm2m':3.508e-2, 'start_wl':5.50e-7-8.80e-8*0.5, 'end_wl':5.50e-7+8.80e-8*0.5},
+                'R':{'mean_wl':7.00e-7, 'delta_wl':1.47e-7, 'flux_jansky':2880, 'flux_wm2m':1.762e-2, 'start_wl':7.00e-7-1.47e-7*0.5, 'end_wl':7.00e-7+1.47e-7*0.5},
+                'I':{'mean_wl':9.00e-7, 'delta_wl':1.50e-7, 'flux_jansky':2250, 'flux_wm2m':8.327e-3, 'start_wl':9.00e-7-1.50e-7*0.5, 'end_wl':9.00e-7+1.50e-7*0.5},
+                'J':{'mean_wl':1.25e-6, 'delta_wl':2.02e-7, 'flux_jansky':1670, 'flux_wm2m':3.204e-3, 'start_wl':1.25e-6-2.02e-7*0.5, 'end_wl':1.25e-6+2.02e-7*0.5},
+                'H':{'mean_wl':1.65e-6, 'delta_wl':3.68e-7, 'flux_jansky': 981, 'flux_wm2m':1.080e-3, 'start_wl':1.65e-6-3.68e-7*0.5, 'end_wl':1.65e-6+3.68e-7*0.5},
+                'K':{'mean_wl':2.20e-6, 'delta_wl':5.11e-7, 'flux_jansky': 620, 'flux_wm2m':3.840e-4, 'start_wl':2.20e-6-5.11e-7*0.5, 'end_wl':2.20e-6+5.11e-7*0.5}}
+ALL_FILTERS['U']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['U']['start_wl']), np.log10(ALL_FILTERS['U']['end_wl']), 10)
+ALL_FILTERS['B']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['B']['start_wl']), np.log10(ALL_FILTERS['B']['end_wl']), 10)
+ALL_FILTERS['V']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['V']['start_wl']), np.log10(ALL_FILTERS['V']['end_wl']), 10)
+ALL_FILTERS['R']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['R']['start_wl']), np.log10(ALL_FILTERS['R']['end_wl']), 10)
+ALL_FILTERS['I']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['I']['start_wl']), np.log10(ALL_FILTERS['I']['end_wl']), 10)
+ALL_FILTERS['J']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['J']['start_wl']), np.log10(ALL_FILTERS['J']['end_wl']), 10)
+ALL_FILTERS['H']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['H']['start_wl']), np.log10(ALL_FILTERS['H']['end_wl']), 10)
+ALL_FILTERS['K']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['K']['start_wl']), np.log10(ALL_FILTERS['K']['end_wl']), 10)
+
+
+def deproj_image(x, y, inc, pa, polar_in=True, polar_out=True): return _deproj(x=x, y=y, inc=inc, pa=pa, polar_in=True, polar_out=True, fourier_plan=False)
+
+def deproj_fourier(x, y, inc, pa, polar_in=True, polar_out=True): return _deproj(x=x, y=y, inc=inc, pa=pa, polar_in=True, polar_out=True, fourier_plan=True)
+
+def _deproj(x, y, inc, pa, polar_out=True, polar_in=True, fourier_plan=False):
+    if polar_in:
+        y, x = x*np.cos(y), x*np.sin(y)
+    else:
+        y, x = x, y
+    if fourier_plan:
+        X = (x*np.cos(pa) + y*np.sin(pa))*np.cos(inc)
+        Y = y*np.cos(pa) - x*np.sin(pa)
+    else:
+        X = x*np.cos(pa) + y*np.sin(pa)
+        Y = (y*np.cos(pa) - x*np.sin(pa))/np.cos(inc)
+    x, y = np.hypot(Y,X), (np.arctan2(X,Y)-pa)%(2*np.pi)
+    if not polar: return x*np.cos(y), x*np.sin(y)
+    return x, y
+
+
+def ratio_bb_flux(wl, teff1, teff2, diam1, diam2):
+    """
+    Calculates the flux ratio at wl (meter) of 2 black-bodies of temperature teff (K) and diameter diam
+    """
+    # pi*2*h*c**2 = 3.741771524664128e-16
+    # h*c/kb = 0.014387769599838155
+    return (np.exp(0.014387769599838155/(wl*teff2))-1)/(np.exp(0.014387769599838155/(wl*teff1))-1)*(diam1/diam2)**2
+
+
+def mag2diam(ref_mag, ref_band, teff, nbr_pts=10):
+    """
+    Returns the DIAMETER (not radius) of a black body of a given magnitude (U,B,V,R,I,J,H,K)
+    """
+    ff = ALL_FILTERS[ref_band]
+    if nbr_pts != 10:
+        lam = np.logspace(np.log10(ff['start_wl']), np.log10(ff['end_wl']), nbr_pts)
+    else:
+        lam = ALL_FILTERS[ref_band]['span_10pts']
+    irradiance_integrated = np.trapz(blackbody_spectral_irr(teff, lam), lam)
+    return np.sqrt(ff['flux_wm2m']*10**(-0.39809*ref_mag)*ff['delta_wl']/irradiance_integrated)*RAD2MAS*2
+
+
+def blackbody_spectral_irr(teff, wl):
+    """
+    Calculates the emitted (at surface!) flux in W/m2/m assuming black body behaviour, given an effective temperature (K) and wl (meter)
+    """
+    # pi*2*h*c**2 = 3.741771524664128e-16
+    # h*c/kb = 0.014387769599838155
+    return 3.741771524664128e-16/wl**5*1/(np.exp(0.014387769599838155/(wl*teff))-1)
+
+
 def hduToDataType(hdu):
     """
     Give a hdu, return a datatype name as string or None if it is not a data hdu
     """
     return DATATYPEEXTNAMES.get(getattr(hdu, "header", {}).get('EXTNAME', None), None)
+
 
 def hduWlindex(hdus, returnHdu=False):
     """
@@ -395,17 +466,6 @@ def gauss1D(x, y, A, x0, y0, sigma):
 
 def gauss1Dsimple(blwlsigma):
     return np.exp(-blwlsigma*blwlsigma)
-
-
-def bb(teff, wl, rel=False):
-    """
-    Give an effective temerature in K and a wavelength in m
-    Returns the relative flux emitted (with respect to another temperature)
-    """
-    # pi*2*h*c**2 = 3.741771524664128e-16
-    # h*c/kb = 0.014387769599838155
-    return 1/(np.exp(0.014387769599838155/(wl*teff))-1)
-
 
 class PriorWrapper(object):
     def __init__(self, fct, makenorm=True, makeunlog=False, fct_log=False, npts=1000, *args, **kwargs):

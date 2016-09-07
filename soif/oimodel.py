@@ -87,7 +87,7 @@ class Oimodel(object):
 
     def add_obj(self, typ, name=None, params={}, prior={}):
         """
-        Add an object to the model
+        Adds an object to the model
         """
         # gets the future new name of the object
         if isinstance(typ, Oimainobject):
@@ -382,7 +382,7 @@ class Oimodel(object):
 
     def likelihood(self, params, customlike=None, chi2=False, **kwargs):
         kwargs['chi2'] = chi2
-        return _likelihood(params=params, model=self, customlike=customlike, kwargs=kwargs)
+        return standardLikelihood(params=params, model=self, customlike=customlike, kwargs=kwargs)
 
 
     def save(self, filename, clobber=False):
@@ -417,7 +417,7 @@ class Oimodel(object):
         return filename
 
 
-def _likelihood(params, model, customlike=None, kwargs={}):
+def standardLikelihood(params, model, customlike=None, kwargs={}):
     '''
     Calculate the likelihood of the model versus the data.
     Use customlike and kwargs parameters for a custom likelihood function.
@@ -501,7 +501,23 @@ def _likelihood(params, model, customlike=None, kwargs={}):
             quality += ((model.oidata.t3amp.data - t3amp)**2*invvar).sum()
         else:
             quality += ((model.oidata.t3amp.data - t3amp)**2*invvar - np.log(invvar)).sum()
+    
+    ### !!! hard-coded shit to fit black-body stuff
+    #khi_temp = (core.ratio_bb_flux(1.65*1e-6, params[0], params[4], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560
+    khi_temp = (core.ratio_bb_flux(1.65*1e-6, np.random.normal(model._objs[0].temp, 2000), params[3], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560
+    quality += khi_temp*model.oidata.vis2.data.size
+
     if chi2:
         return quality
     else:
         return ln_prior - 0.5*quality # log like
+
+
+def tweakparams(model, params):
+    #Hmag = 5.44-0.62470279
+    Rmag = 4.5274 # obtained from V and R mag estimates, extinction corrected
+    model._objs[0].diam = soif.core.mag2diam(Rmag - 2.5*np.log10(1./(1. + 1./params[2] + 1./params[4])), 'R', model._objs[0].temp)
+    model._objs[1].diam = soif.core.mag2diam(Rmag - 2.5*np.log10((1./params[2])/(1. + 1./params[2] + 1./params[4])), 'R', params[3])
+    #model._objs[0].diam = soif.core.mag2diam(Rmag - 2.5*np.log10(1./(1. + 1./params[3] + 1./params[5])), 'R', params[0])
+    #model._objs[1].diam = soif.core.mag2diam(Rmag - 2.5*np.log10((1./params[3])/(1. + 1./params[3] + 1./params[5])), 'R', params[4])
+
