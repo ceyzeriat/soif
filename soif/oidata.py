@@ -75,7 +75,7 @@ class Oigrab(object):
         hdus.close()
 
     def _info(self):
-        return "%s<SOIF File>%s\n File: '%s'" % (core.font.blue, core.font.normal, self.src)
+        return "{}<SOIF File>{}\n File: '{}'".format(core.font.blue, core.font.normal, self.src)
     def __repr__(self):
         return self._info()
     def __str__(self):
@@ -116,20 +116,26 @@ class Oigrab(object):
         if not ret:
             print("TARGETS:")
             for ind, tgt in self.targets.items():
-                print('%d: %s' % (ind, tgt))
+                print("{}: {}".format(ind, tgt))
         tgtlist = {}
         for idx, item in enumerate(hdus):
-            if core.hduToDataType(item) is not None:
+            if core.hduToDataType(item) is not None: # if we have data in this header
                 targetindexnumber, MJD, (ndata, nset, nunique, nholes, nwl) = core.gethduMJD(item, withdet=True)
                 tgtlist[idx] = []
-                if not ret: print("\n%s [hdu=%d]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n%s" % (core.hduToDataType(item), idx, "-"*52))
-                for tgtidx, sMJD in zip(targetindexnumber.reshape((-1, nunique))[:,0], MJD[targetindexnumber].reshape((-1, nunique))[:,0]):
+                if not ret:
+                    print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}".format(core.hduToDataType(item), idx, "-"*52))
+                aa = targetindexnumber.reshape((-1, nunique))[:,0]
+                bb = MJD[targetindexnumber].reshape((-1, nunique))[:,0]
+                for tgtidx, sMJD in zip(aa, bb):
                     tgtfilter = slice(tgtidx*nunique, (tgtidx+1)*nunique)
                     tgtid = item.data['TARGET_ID'][tgtfilter]
-                    if not ret: print("%10s | %9s | %13s | %4s | %4s"%(tgtidx, tgtid[0], sMJD, tgtid.size, nwl))
+                    if not ret:
+                        print("{:>10} | {:>9} | {:>13} | {:>4 | {:>4}".format(tgtidx, tgtid[0], sMJD, tgtid.size, nwl))
                     tgtlist[idx].append((tgtidx, tgtid[0], sMJD, tgtid.size, nwl))
         hdus.close()
-        if ret: return tgtlist
+        if ret:
+            return tgtlist
+
 
     def show_filtered(self, tgt=None, mjd=[None, None], hduNums=[], vis2=True, t3phi=True, t3amp=True, visphi=True, visamp=True, verbose=False, **kwargs):
         """
@@ -150,7 +156,7 @@ class Oigrab(object):
                 filt = ((MJD>=mjd[0]) & (MJD<=mjd[1]))
                 if tgt is not None:
                     filt = (filt & (item.data.field("TARGET_ID") == int(tgt)))
-                if verbose: print("%s:\n  %d/%s\n"%(core.hduToDataType(item), filt.sum(), item.data["TARGET_ID"].size))
+                if verbose: print("{}:\n  {:d}/{}\n".format(core.hduToDataType(item), filt.sum(), item.data["TARGET_ID"].size))
                 datayouwant[idx] = np.arange(item.data["TARGET_ID"].size)[filt]
         hdus.close()
         return datayouwant
