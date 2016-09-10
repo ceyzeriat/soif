@@ -130,6 +130,11 @@ class Oigrab(object):
                 if not ret:
                     print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}".format(core.hduToDataType(item), idx, "-"*52))
                 shapedtargetnums = targetindexnumber.reshape((-1, nunique))[:, 0]
+                print(MJD)
+                print(targetindexnumber)
+                print(type(targetindexnumber))
+                print(targetindexnumber.dtype)
+                print(targetindexnumber.astype(int))
                 bb = MJD[targetindexnumber]
                 bb.reshape((-1, nunique))
                 bb = bb[:, 0]
