@@ -108,16 +108,18 @@ class Oimodel(object):
         else:
             name = core.clean_name(name)
         # check for already existing name
-        if hasattr(self, "o_"+name): raise NameError("Object name already exists")
+        if hasattr(self, "o_"+name):
+            if exc.raiseIt(exc.BusyName, self.raiseError, name=name):
+                return
         # if all good, proceeds
-        if isinstance(typ, Oimainobject): # if first argument is already a built object
+        if isinstance(typ, Oimainobject):  # if first argument is already a built object
             self._objs.append(deepcopy(typ))
-        elif typ in _objects: # if we need to build the object, and it exists
+        elif typ in _objects:  # if we need to build the object, and it exists
             self._objs.append(globals()[typ](name=name, params=params, prior=prior))
         else:
-            print(core.font.red+"ERROR: Could not find the object name for '%s', name given: %s%s" % (typ, name, core.font.normal))
-            return
-        setattr(self, "o_"+name, self._objs[-1]) # quick access as a class property
+            if exc.raiseIt(exc.InalidUnitaryModel, self.raiseError, typ=typ):
+                return
+        setattr(self, "o_"+name, self._objs[-1])  # quick access as a class property
         if hasattr(self._objs[-1], 'prepare') and self._hasdata:
             self._objs[-1].prepare(oidata=self.oidata)
         self.nobj += 1
@@ -129,15 +131,17 @@ class Oimodel(object):
         idobj can be the name of the object or its index in the model list 
         """
         if not isinstance(idobj, int):
-            name = core.clean_name(name)
-            if not hasattr(self, "o_"+name): raise NameError("Didn't find object name")
-            ind = self._objs.index(getattr(self, "o_"+name))
+            idobj = core.clean_name(idobj)
+            if not hasattr(self, "o_"+idobj):
+                if exc.raiseIt(exc.NotFoundName, self.raiseError, name=idobj):
+                    return
+            ind = self._objs.index(getattr(self, "o_"+idobj))
         else:
             ind = name
-            name = self._objs[ind].name
+            idobj = self._objs[ind].idobj
         dummy = self._objs.pop(ind)
-        delattr(self, "o_"+name)
-        print(core.font.blue+"Deleted object '%s'." % (name)+core.font.normal)
+        delattr(self, "o_"+idobj)
+        print("{}Deleted object '{}'{}.".format(core.font.blue, idobj, core.font.normal))
         self.nobj -= 1
         dum = self.nparamsObjs
 
@@ -148,7 +152,8 @@ class Oimodel(object):
         ret = []
         for item in self._objs:
             ret += item.getP0()
-        if getattr(self.oidata, "systematic_fit", False): ret += [self.oidata.systematic_p0()]
+        if getattr(self.oidata, "systematic_fit", False):
+            ret += [self.oidata.systematic_p0()]
         return ret
 
 
@@ -158,7 +163,8 @@ class Oimodel(object):
         for item in self._objs:
             for arg in item._pkeys:
                 ret.append(item.name+"_"+arg)
-        if getattr(self.oidata, "systematic_fit", False): ret += ["sys"]
+        if getattr(self.oidata, "systematic_fit", False):
+            ret += ["sys"]
         return ret
     @paramstr.setter
     def paramstr(self, value):
@@ -173,7 +179,9 @@ class Oimodel(object):
         ret = []
         for item in self._objs:
             ret += getattr(item, "params", [])
-        if getattr(self.oidata, "systematic_fit", False): ret += [self.oidata.systematic_prior if self.oidata.systematic_prior is not None else self.oidata.systematic_p0()]
+        if getattr(self.oidata, "systematic_fit", False):
+            fiterrors = self.oidata.systematic_prior is not None
+            ret += [self.oidata.systematic_prior if fiterrors else self.oidata.systematic_p0()]
         return ret
     @params.setter
     def params(self, value):
@@ -187,15 +195,19 @@ class Oimodel(object):
     def statut(self, params, customlike=None, **kwargs):
         self.setParams(params)
         chi2 = self.likelihood(params=params, customlike=customlike, chi2=True, **kwargs)
-        print('Khi-2: %.3f' % chi2)
-        print('Khi-2 NULL: %.3f' % self.likelihood(params=params, customlike=customlike, chi2=True, null=True, **kwargs))
-        print('ln-like: %.3f' % self.likelihood(params=params, customlike=customlike, chi2=False, **kwargs))
-        print('ln-like NULL: %.3f' % self.likelihood(params=params, customlike=customlike, chi2=False, null=True, **kwargs))
-        print('Number of parameters (k): %i' % self._nparamsObj)
+        print('Khi-2: {:.3f}'.format(chi2))
+        print('Khi-2 NULL: {:.3f}'
+            .format(self.likelihood(params=params, customlike=customlike, chi2=True, null=True, **kwargs)))
+        print('ln-like: {:.3f}'.format(self.likelihood(params=params, customlike=customlike, chi2=False, **kwargs)))
+        print('ln-like NULL: {:.3f}'
+            .format(self.likelihood(params=params, customlike=customlike, chi2=False, null=True, **kwargs)))
+        print('Number of parameters (k): {:d}'.format(self._nparamsObj))
 
 
     def setParams(self, params, priors=False):
-        if len(params) != self.nparams: raise Exception("params has not the correct number of parameters")
+        if len(params) != self.nparams:
+            if exc.raiseIt(exc.BadParamsSize, self.raiseError, size=self.nparams):
+                return
         parampos = 0
         for item in self._objs:
             item.setParams(params=params[parampos:parampos+item._nparams], priors=priors)
@@ -210,16 +222,18 @@ class Oimodel(object):
         Calculates the complex visibility of the model from all unitary models
         """
         if self._hasdata:
-            totviscomp = self._compVis(u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'], blwl=oidata.uvwl['blwl'], params=params)
-            return self.oidata.remorph(totviscomp)
+            totviscomp = self._compVis(u=self.oidata.uvwl['u'], v=self.oidata.uvwl['v'], wl=self.oidata.uvwl['wl'],
+                blwl=self.oidata.uvwl['blwl'], params=params)
+            return self.self.oidata.remorph(totviscomp)
         else:
             if u is None or v is None or wl is None:
-                if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+                if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src):
+                    return
             else:
                 return self._compVis(u=u, v=v, wl=wl, params=params)            
 
 
-    def calcUVImage(self, blmax, wl, params=None, nbpts=101):
+    def calcuvimage(self, blmax, wl, params=None, nbpts=101):
         """
         Outputs the complex visibility for a grid a (u,v) in [-blmax,blmax], with nbpts in each dimension
         """
@@ -235,7 +249,8 @@ class Oimodel(object):
             params = self.getP0() # initialize at p0 in case no params is given
         else:
             self.setParams(params)
-        if self._tweakparams is not None: self._tweakparams(self, params)
+        if self._tweakparams is not None:
+            self._tweakparams(self, params)
         for item in self._objs:
             compvis, flx = item._calcCompVis(u=u, v=v, wl=wl, blwl=blwl)
             compvis *= flx
@@ -246,7 +261,7 @@ class Oimodel(object):
         return totviscomp
 
 
-    def calcImage(self, params=None, sepmax=None, wl=None, masperpx=None, nbpts=101, psfConvolve=None, **kwargs):
+    def calcimage(self, params=None, sepmax=None, wl=None, masperpx=None, nbpts=101, psfConvolve=None, **kwargs):
         """
         psfConvolve in mas (lambda/D)
         """
@@ -261,8 +276,10 @@ class Oimodel(object):
                 if masperpxfixed is None:
                     masperpxfixed = item._masperpx
                 elif np.abs(1-masperpxfixed/item._masperpx)*nbptscheck > 1:
-                    raise Exception("can't return an image, it seems that several non-scalable images do not have the save masperpx")
-        if masperpxfixed is not None: masperpx = masperpxfixed
+                    if exc.raiseIt(exc.MasperpxMismatch, self.raiseError, mpp1=masperpxfixed, mpp2=item._masperpx):
+                        return
+        if masperpxfixed is not None:
+            masperpx = masperpxfixed
         # check resolution parameters
         if sepmax is None and masperpx is None and nbpts is not None:
             sepmax = 1000*nbpts/(2*np.hypot(self.oidata.uvwl['v'], self.oidata.uvwl['u']).max())
@@ -270,74 +287,85 @@ class Oimodel(object):
             nbpts = int(2.*sepmax/masperpx)
         elif masperpx is not None and nbpts is not None:
             pass
-        elif sepmax is not None and nbpts is not None:
-            masperpx = sepmax*2./nbpts
         else:
-            raise Exception("can't determine the resolution, nbpts should not be None")
+            masperpx = sepmax*2./nbpts
+        #elif sepmax is not None and nbpts is not None:
+        #    masperpx = sepmax*2./nbpts
+        #else:
+        #    raise Exception("can't determine the resolution, nbpts should not be None")
         sepmax = 0.5*nbpts*masperpx
         # check other parameters
         if wl is None: wl = self.oidata.uvwl['wl'].min()
         # initialize array
         img = np.zeros((nbpts, nbpts))
         if self._tweakparams is not None: self._tweakparams(self, params)
-        if params is not None: self.setParams(params)
+        if params is None:
+            params = self.getP0() # initialize at p0 in case no params is given
+        else:
+            self.setParams(params)
         for item in self._objs:
-            try:
-                img += item.image(sepmax=sepmax, masperpx=masperpx, wl=wl, nbpts=nbpts)
-            except AttributeError:
-                raise AttributeError("it looks like some parameters are not initialized. Input your parameters after params=[...]")
+            img += item.image(sepmax=sepmax, masperpx=masperpx, wl=wl, nbpts=nbpts)
             parampos += item._nparams
         if psfConvolve is not None:
-            if len(core.aslist(psfConvolve))==1:
+            if len(core.aslist(psfConvolve)) == 1:
                 psf = core.psf(float(psfConvolve)*core.MAS2RAD, masperpx)
-            elif len(core.aslist(psfConvolve))==3:
+            elif len(core.aslist(psfConvolve)) == 3:
                 sx, sy, th = map(float, psfConvolve[:3])
                 y, x = np.meshgrid(np.arange(nbpts)-nbpts//2, np.arange(nbpts)-nbpts//2)
                 psf = core.gauss2D(x, y, 1, 0, 0, sx*0.5/masperpx, sy*0.5/masperpx, th)
             img = core.fftconvolve(img, psf, mode='same')
-        if kwargs.get('retresol', False): return img, (sepmax, masperpx, nbpts)
+        if kwargs.pop('retresol', False):
+            return img, (sepmax, masperpx, nbpts)
         return img
 
 
-    def image(self, params=None, sepmax=None, wl=None, masperpx=None, nbpts=101, cmap='jet', cm_min=None, cm_max=None, ret=False, visu=None, psfConvolve=None, **visuargs):
+    def image(self, params=None, sepmax=None, wl=None, masperpx=None, nbpts=101, cmap='jet', cm_min=None,
+              cm_max=None, ret=False, visu=None, psfConvolve=None, **visuargs):
         """
         psfConvolve in mas (lambda/D)
         """
         # check other params
-        if visu is None: visu = core.ident
+        if visu is None:
+            visu = core.ident
         if not callable(visu):
-            print(core.font.red+"ERROR: visu parameter must be callable"+core.font.normal)
-            return
-        toplot, (sepmax, masperpx, nbpts) = self.compimage(sepmax=sepmax, wl=wl, params=params, nbpts=nbpts, psfConvolve=psfConvolve, retresol=True)
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct='visu'):
+                return
+        toplot, (sepmax, masperpx, nbpts) = self.calcimage(sepmax=sepmax, wl=wl, params=params, nbpts=nbpts, psfConvolve=psfConvolve, retresol=True)
         toplot = visu(toplot, **visuargs)
-        if cm_min is None: cm_min = toplot.min()
-        if cm_max is None: cm_max = toplot.max()
+        if cm_min is None:
+            cm_min = toplot.min()
+        if cm_max is None:
+            cm_max = toplot.max()
         cmap, norm, mappable = core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
         thefig, ax = core.astroskyplot(sepmax, polar=False, unit='mas')
-        ax.matshow(toplot, origin='lower', extent=[-sepmax,sepmax,-sepmax,sepmax], cmap=cmap, norm=norm)
+        ax.matshow(toplot, origin='lower', extent=[-sepmax, sepmax, -sepmax, sepmax], cmap=cmap, norm=norm)
         plt.colorbar(mappable)
-        if ret: return toplot
+        if ret:
+            return toplot
 
 
-    def uvimage(self, params=None, blmax=None, wl=None, typ='vis2', nbpts=101, cmap='jet', cm_min=None, cm_max=None, ret=False, visu=None, **visuargs):
+    def uvimage(self, params=None, blmax=None, wl=None, typ='vis2', nbpts=101, cmap='jet', cm_min=None,
+                cm_max=None, ret=False, visu=None, **visuargs):
         """
-        typ can be: vis, vis2, phase
+        typ can be: 'VIS2', 'T3PHI', 'T3AMP', 'VISPHI', or 'VISAMP'
         """
-        typdic = {'vis2':core.abs2, 'phase':np.angle, 'vis':np.abs}
         # check other params
         if visu is None: visu = core.ident
         if not callable(visu):
-            print(core.font.red+"ERROR: visu parameter must be callable"+core.font.normal)
-            return
-        toplot = self.compuvimage(blmax=blmax, wl=wl, params=params, nbpts=nbpts)
-        toplot = visu(typdic.get(typ, typdic['vis2'])(toplot), **visuargs)
-        if cm_min is None: cm_min = toplot.min()
-        if cm_max is None: cm_max = toplot.max()
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct='visu'):
+                return
+        toplot = self.calcuvimage(blmax=blmax, wl=wl, params=params, nbpts=nbpts)
+        toplot = visu(core.FCTVISCOMP.get(typ.upper(), core.FCTVISCOMP['VIS2'])(toplot), **visuargs)
+        if cm_min is None:
+            cm_min = toplot.min()
+        if cm_max is None:
+            cm_max = toplot.max()
         cmap, norm, mappable = core.colorbar(cmap=cmap, cm_min=cm_min, cm_max=cm_max)
         thefig, ax = core.astroskyplot(blmax, polar=False, unit='m')
-        ax.matshow(toplot, origin='lower', extent=[-blmax,blmax,-blmax,blmax], cmap=cmap, norm=norm)
+        ax.matshow(toplot, origin='lower', extent=[-blmax, blmax, -blmax, blmax], cmap=cmap, norm=norm)
         plt.colorbar(mappable)
-        if ret: return toplot
+        if ret:
+            return toplot
 
     def residual(self, params, c=None, cmap='jet', cm_min=None, cm_max=None, datatype='All'):
         if not self._hasdata:

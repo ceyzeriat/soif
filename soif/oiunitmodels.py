@@ -26,6 +26,7 @@
 
 
 from .oimainobject import Oimainobject as Oimainobject
+from . import oiexception as exc
 from . import core
 np = core.np
 
@@ -84,7 +85,7 @@ class UniformRing(Oimainobject):
 
         return (rout2*visout-rin2*visin)/(rout2-rin2)*oscil, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         masperpx = 2*sepmax/nbpts
@@ -118,7 +119,7 @@ class UniformRing2D(UniformRing):
 
         return (rout2*visout-rin2*visin)/(rout2-rin2)*oscil, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         x, y = self._shearCoord(x-ra, y-dec)
@@ -136,22 +137,26 @@ class BGimage(Oimainobject):
         super(BGimage, self).__init__(name=name, priors=priors, bounds=bounds, *args, **kwargs)
         self._masperpx = float(masperpx)
         self.negRA = bool(negRA)
-        if img is None: img = kwargs.get('_img')
+        if img is None:
+            img = kwargs.get('_img')
         self.totFlux = img.sum() if totFlux is None else float(totFlux)
         self._img = img/self.totFlux
         self._prepared = False
-        if kwargs.get('oidata') is not None: self.prepare(oidata=kwargs['oidata'])
+        if kwargs.get('oidata') is not None:
+            self.prepare(oidata=kwargs['oidata'])
 
     def _calcCompVis(self, *args, **kwargs):
         return self._compvis, 1./self.cr
 
     def prepare(self, oidata):
-        if self._prepared: return
+        if self._prepared:
+            return
         self._compvis = core.calcImgVis(img=self.img, masperpx=self.masperpx, u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'])
         self._prepared = True
 
     def prepare(self, oidata, force=False):
-        if force: self._prepared = False
+        if force:
+            self._prepared = False
         self.prepare(oidata=oidata)
 
     @property
@@ -162,16 +167,19 @@ class BGimage(Oimainobject):
             return self._img
     @img.setter
     def img(self, value):
-        raise Exception("read-only")
-
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="img")
 
     def image(self, sepmax=None, masperpx=None, wl=None, nbpts=101):
-        if masperpx is None: masperpx = self.masperpx
-        if sepmax is None: sepmax = np.min(self.img.shape)*masperpx
+        if masperpx is None:
+            masperpx = self.masperpx
+        if sepmax is None:
+            sepmax = np.min(self.img.shape)*masperpx
         if nbpts is None:
             nbpts = int(2.*sepmax/masperpx)
             sepmax = 0.5*nbpts*masperpx
-        if np.abs(1-masperpx/self._masperpx)*nbpts > 1: raise Exception("Different masperpx value, can't rescale image")
+        if np.abs(1-masperpx/self._masperpx)*nbpts > 1:
+            if exc.raiseIt(exc.MasperpxMismatch, self.raiseError, mpp1=masperpx, mpp2=self._masperpx):
+                return
         if self.img.shape[0] > nbpts:
             deb_x = self.img.shape[0]//2 - nbpts//2
             deb_y = self.img.shape[1]//2 - nbpts//2
@@ -202,7 +210,7 @@ class Background(Oimainobject):
         """
         return np.zeros(u.shape, dtype=complex), 1./self.cr
 
-    def image(self, sepmax=None, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax=None, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         return np.zeros((nbpts, nbpts))
         #x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         #masperpx = 2*sepmax/nbpts
@@ -229,7 +237,7 @@ class UniformDisk(Oimainobject):
 
         return oscil*vis, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         masperpx = 2*sepmax/nbpts
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
@@ -257,7 +265,7 @@ class UniformDiskBB(Oimainobject):
 
         return oscil*vis, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         masperpx = 2*sepmax/nbpts
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
@@ -288,7 +296,7 @@ class UniformDisk2D(UniformDisk):
 
         return oscil*vis, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         x, y = self._shearCoord(x-ra, y-dec)
@@ -319,7 +327,7 @@ class GaussDiff(Oimainobject):
 
         return (ggout*nout-ggin*nin)/(nout-nin)*oscil, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         theim = core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*self.sig/sepmax) - core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*(self.sig+self.dif)/sepmax)
@@ -376,7 +384,7 @@ class Gauss(Oimainobject):
 
         return oscil*gg, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         theim = core.gauss1D(x-ra, y-dec, 1., 0., 0., 0.5*nbpts*self.sig/sepmax)
@@ -403,7 +411,7 @@ class Gauss2D(Gauss):
 
         return oscil*gg, 1./self.cr
 
-    def image(self, sepmax, masperpx=None, wl=None, nbpts=101): # in flux per pixel
+    def image(self, sepmax, masperpx=None, wl=None, nbpts=101):  # in flux per pixel
         x, y = np.meshgrid(np.arange(nbpts), np.arange(nbpts), sparse=False, indexing='xy')
         ra, dec = self.to_pospx(sepmax=sepmax, nbpts=nbpts)
         x, y = self._shearCoord(x-ra, y-dec)
@@ -520,7 +528,8 @@ class UniformDiskLinCR(Oimainobject):
 """
 class Spectral(object):
     def __init__(self, oidata, spectralKey, *args, **kwargs):
-        if str(spectralKey) not in self._keys: raise Exception("Not such key '%s' to spectralize" % (spectralKey))
+        if str(spectralKey) not in self._keys:
+            raise Exception("Not such key '%s' to spectralize" % (spectralKey))
         self._spectralKey = str(spectralKey)
         self._keys = list(self._keys) # makes a copy
         self._keys.remove(self._spectralKey)
@@ -558,13 +567,14 @@ class Spectral(object):
         if specval is not None:
             priors.pop(self.spectralKey)
             specval = np.asarray(specval) # pretty array
-            if specval.size!=self.nspectral and specval.size!=1: # if some specval initialization missing
+            if specval.size!=self.nspectral and specval.size!=1:  # if some specval initialization missing
                 print(font.orange+"WARNING"+font.normal+": contrast ratio size '%s' should be same size as wavelengths '%s' in '%s'. Parameter set to None." % (specval.size, self.nspectral, name))
                 specval = None
             else:
-                if specval.size==1: specval = specval*np.ones(self.nspectral) # just one value of specval param, flatten it on all wl
+                if specval.size==1:
+                    specval = specval*np.ones(self.nspectral) # just one value of specval param, flatten it on all wl
                 for i, spectralit in enumerate(specval):
-                    if spectralit is not None: # this value of param is not known
+                    if spectralit is not None:  # this value of param is not known
                         priors[self.spectralKey+str(i)] = spectralit
         
         specval = bounds.get(self.spectralKey)
@@ -572,13 +582,14 @@ class Spectral(object):
             bounds.pop(self.spectralKey)
             specval = np.asarray(specval) # pretty array
             ntotelmt = np.sum([np.size(item) for item in specval])
-            if specval.shape[0]!=self.nspectral and specval.shape[0]!=ntotelmt: # if some specval initialization missing
+            if specval.shape[0]!=self.nspectral and specval.shape[0]!=ntotelmt:  # if some specval initialization missing
                 specval = None
                 print(font.orange+"WARNING"+font.normal+": contrast ratio size '%s' should be same size as wavelengths '%s' in '%s'. Bound set to None." % (specval.size, self.nspectral, name))
             else:
-                if specval.shape[0]==ntotelmt: specval = np.tile(specval, self.nspectral).reshape((self.nspectral, -1)) # just one value of specval bound, copy it on all wl
+                if specval.shape[0]==ntotelmt:
+                    specval = np.tile(specval, self.nspectral).reshape((self.nspectral, -1)) # just one value of specval bound, copy it on all wl
                 for i, spectralit in enumerate(specval):
-                    if spectralit is not None: # this value of param is not known
+                    if spectralit is not None:  # this value of param is not known
                         bounds[self.spectralKey+str(i)] = spectralit
         return priors, bounds
 
@@ -586,5 +597,6 @@ class Spectral(object):
 
 class PointSourceSpectral(Spectral, PointSource):
     def __init__(self, name, spectralKey, oidata, priors={}, bounds={}, *args, **kwargs):
-        if not isinstance(oidata, Oidata): raise Exception("oidata must be Oidata type")
+        if not isinstance(oidata, Oidata):
+            raise Exception("oidata must be Oidata type")
         super(PointSourceSpectral, self).__init__(self, oidata=oidata, spectralKey=spectralKey, name=name, priors=priors, bounds=bounds, *args, **kwargs)

@@ -26,6 +26,7 @@
 
 
 from . import oipriors
+from . import oiexception as exc
 from . import core
 np = core.np
 
@@ -43,6 +44,7 @@ __all__ = ['Oimainobject']
 class Oimainobject(object):
     def __init__(self, name, priors={}, bounds={}, verbose=False, *args, **kwargs):
         super(Oimainobject, self).__init__(*args, **kwargs)
+        self.raiseError = bool(kwargs.pop('raiseError', True))
         self.name = str(name)
         self._nkeys = len(self._keys)
         self._pkeys = []
@@ -51,43 +53,50 @@ class Oimainobject(object):
         self._pmask = np.zeros(self._nkeys, dtype=bool)
         self._vmask = np.zeros(self._nkeys, dtype=bool)
         for item in bounds.keys():
-            if item not in self._keys: print(core.font.orange+"WARNING"+core.font.normal+": Ignoring unknown bounds '%s' for object '%s'." % (item, name))
+            if item not in self._keys:
+                print("{}WARNING{}: Ignoring unknown bounds '{}' for object '{}'."
+                    .format(core.font.orange, core.font.normal, item, name))
         for item in priors.keys():
-            if item not in self._keys: print(core.font.orange+"WARNING"+core.font.normal+": Ignoring unknown parameter '%s' for object '%s'." % (item, name))
+            if item not in self._keys:
+                print("{}WARNING{}: Ignoring unknown prior '{}' for object '{}'."
+                    .format(core.font.orange, core.font.normal, item, name))
         for i, item in enumerate(self._keys):
             found = False
-            if item in priors.keys():
+            if item, vals in priors.items():
                 found = True
-                setattr(self, item, float(priors[item]))
-                setattr(self, "_"+item, float(priors[item]))
-            if item in bounds.keys():
+                setattr(self, item, float(vals))
+                setattr(self, "_"+item, float(vals))
+            if item, vals in bounds.items():
                 found = True
-                if len(bounds[item])<2: # error if less than 2 bounds
-                    raise Exception("Bounds for object '%s', parameter '%s' has only one bound: %s." % (name, item, str(bounds[item])))
-                #set basic parameters
-                setattr(self, item+"_bounds", list(map(float, bounds[item][:2])))
+                if len(vals) < 2:  # error if less than 2 bounds
+                    if exc.raiseIt(exc.InvalidBound, self.raiseError, name=name, param=item, vv=str(vals)):
+                        return
+                # set basic parameters
+                setattr(self, item+"_bounds", list(map(float, vals[:2])))
                 prior_range = np.abs(getattr(self, item+"_bounds")[1]-getattr(self, item+"_bounds")[0])*1.
                 allkwargs = {'prior_bounds': getattr(self, item+"_bounds"), 'prior_range': prior_range, 'prior_invrange': 1./prior_range, 'prior_lninvrange':-np.log(prior_range)}
-                if len(bounds[item])>=4:
-                    if not isinstance(bounds[item][3], dict):
-                        raise Exception("For object '%s', the fourth argument '%s' in prior definition must be a dictionary." %  (item, bounds[item][3]))
-                    allkwargs.update(bounds[item][3])
+                if len(vals)>=4:
+                    if not isinstance(vals[3], dict):
+                        raise Exception("For object '{}', the fourth argument '{}' in prior definition must be a dictionary.".format(item, vals[3]))
+                    allkwargs.update(vals[3])
                 setattr(self, item+"_prior_kwargs", allkwargs)
-                if len(bounds[item])==2:
-                    if verbose: print("%sWARNING%s: No prior probability function found for parameter '%s', object '%s'. Assuming Uniform." % (core.font.orange, core.font.normal, item, name))
+                if len(vals)==2:
+                    if verbose:
+                        print("{}WARNING{}: No prior probability function found for parameter '{}', object '{}'. Assuming Uniform.".format(core.font.orange, core.font.normal, item, name))
                     setattr(self, item+"_prior_lnfunc", core.PriorWrapper(oipriors.lnuniform, makenorm=True, makeunlog=False, fct_log=True, **allkwargs)) # default is uniform on the range
                     setattr(self, item+"_prior_func", core.PriorWrapper(oipriors.uniform, makenorm=True, makeunlog=False, fct_log=False, **allkwargs)) # default is uniform on the range
-                if len(bounds[item])>=3:
-                    if not callable(bounds[item][2]):
-                        raise Exception("For object '%s', the third argument '%s' in bounds definition must be callable." %  (item, bounds[item][2]))
-                    setattr(self, item+"_prior_lnfunc", core.PriorWrapper(bounds[item][2], makenorm=True, makeunlog=False, fct_log=True, **allkwargs))
-                if len(bounds[item]) in [3, 4]:
-                    if verbose: print(core.font.orange+"WARNING"+core.font.normal+": No bounds probability function found for parameter '%s', object '%s'. Initial values for this parameter will be obtained from the exponentiation of the log-probability function." % (item, name))
-                    setattr(self, item+"_prior_func", core.PriorWrapper(bounds[item][2], makenorm=True, makeunlog=True, fct_log=False, **allkwargs))
-                if len(bounds[item])==5:
-                    if not callable(bounds[item][4]):
-                        raise Exception("For object '%s', the fifth argument '%s' in prior definition must be callable." %  (item, bounds[item][4]))
-                    setattr(self, item+"_prior_func", core.PriorWrapper(bounds[item][4], makenorm=True, makeunlog=False, fct_log=False, **allkwargs))
+                if len(vals)>=3:
+                    if not callable(vals[2]):
+                        raise Exception("For object '{}', the third argument '{}' in bounds definition must be callable.".format(item, vals[2]))
+                    setattr(self, item+"_prior_lnfunc", core.PriorWrapper(vals[2], makenorm=True, makeunlog=False, fct_log=True, **allkwargs))
+                if len(vals) in [3, 4]:
+                    if verbose:
+                        print("{}WARNING{}: No bounds probability function found for parameter '{}', object '{}'. Initial values for this parameter will be obtained from the exponentiation of the log-probability function.".format(core.font.orange, core.font.normal, item, name))
+                    setattr(self, item+"_prior_func", core.PriorWrapper(vals[2], makenorm=True, makeunlog=True, fct_log=False, **allkwargs))
+                if len(vals)==5:
+                    if not callable(vals[4]):
+                        raise Exception("For object '{}', the fifth argument '{}' in prior definition must be callable.".format(item, vals[4]))
+                    setattr(self, item+"_prior_func", core.PriorWrapper(vals[4], makenorm=True, makeunlog=False, fct_log=False, **allkwargs))
                 # pre-computing of P0 stuff
                 x = getattr(getattr(self, item+"_prior_func"), 'x')
                 setattr(self, "_"+item+"_P0", core.random_custom_pdf(x, getattr(self, item+"_prior_func")(x), size=False, renorm=True))
@@ -98,24 +107,28 @@ class Oimainobject(object):
                 self._vkeys.append(item)
                 self._vmask[i] = True
             if not found:
-                raise Exception("No prior nor bounds found for parameter '%s' in object '%s'." % (item, name))
-                setattr(self, item, 0)
-                setattr(self, "_"+item, 0)
+                exc.raiseIt(exc.InvalidBound, self.raiseError, name=name, param=item, vv="None")
+                # force 0.0 to prior
+                setattr(self, item, 0.0)
+                setattr(self, "_"+item, 0.0)
+                return
 
     @property
     def typ(self):
         return self.__class__.__name__
     @typ.setter
     def typ(self, value):
-        raise AttributeError("Read-only")
-
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="typ")
 
     def _info(self):
         anyparam = len(self._pkeys)>0
         anyvalue = len(self._vkeys)>0
-        ret = "%s<%s>%s '%s': %i params" % (core.font.yellow, self.typ, core.font.normal, self.name, self._nparams)
-        if anyparam: ret += " (" + ", ".join([item for item in self._pkeys]) + ")"
-        if anyvalue: ret += "; " + ", ".join([item+"="+str(getattr(self, item)) for item in self._vkeys])
+        ret = "{}<{}>{} '{}': {:d} params".format(core.font.yellow, self.typ, core.font.normal, self.name,
+            self._nparams)
+        if anyparam:
+            ret += " (" + ", ".join([item for item in self._pkeys]) + ")"
+        if anyvalue:
+            ret += "; " + ", ".join([item+"="+str(getattr(self, item)) for item in self._vkeys])
         return ret
     def __repr__(self):
         return self._info()
@@ -123,15 +136,15 @@ class Oimainobject(object):
         return self._info()
 
     def show(self):
-        ret = "%s<%s>%s '%s': %i params" % (core.font.yellow, self.typ, core.font.normal, self.name, self._nparams)
+        ret = "{}<{}>{} '{}': {:d} params".format(core.font.yellow, self.typ, core.font.normal, self.name, self._nparams)
         if len(self._vkeys)>0:
             ret += "\nValues:"
             for item in self._vkeys:
-                ret += "\n  %s%s%s=%s" % (core.font.orange, item, core.font.normal, getattr(self, item))
+                ret += "\n  {}{}{}={}".format(core.font.orange, item, core.font.normal, getattr(self, item))
         if len(self._pkeys)>0:
             ret += "\nParams:"
             for item in self._pkeys:
-                ret += "\n  %s%s%s=%s in [%s, %s]" % (core.font.orange, item, core.font.normal, getattr(self, item, "."), getattr(self, item+"_bounds")[0], getattr(self, item+"_bounds")[1])
+                ret += "\n  {}{}{}={} in [{}, {}]".format(core.font.orange, item, core.font.normal, getattr(self, item, "."), getattr(self, item+"_bounds")[0], getattr(self, item+"_bounds")[1])
         print(ret)
 
     @property
@@ -139,8 +152,7 @@ class Oimainobject(object):
         return self._keys
     @keys.setter
     def keys(self, value):
-        raise AttributeError("Read-only")
-
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="keys")
 
     def to_radec(self):
         """
@@ -148,7 +160,6 @@ class Oimainobject(object):
         """
         seprad = self.sep*core.MAS2RAD
         return seprad*np.sin(self.pa), seprad*np.cos(self.pa)
-
 
     def to_pospx(self, sepmax, nbpts, integer=False):
         norm = nbpts/(2.*sepmax)
@@ -177,7 +188,6 @@ class Oimainobject(object):
         else:
             return np.ones(u.shape, dtype=complex)
 
-
     @property
     def params(self):
         """
@@ -186,8 +196,7 @@ class Oimainobject(object):
         return [getattr(self, item) if hasattr(self, item) else np.mean(getattr(self, item+"_bounds")) for item in self._pkeys]
     @params.setter
     def params(self, value):
-        raise AttributeError("Read-only")
-
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="params")
 
     def setParams(self, params, priors=False):
         """
@@ -199,7 +208,6 @@ class Oimainobject(object):
             for ind, arg in enumerate(self._pkeys):
                 setattr(self, "_"+arg, params[ind])
 
-
     def getP0(self):
         """
         Returns a list of initial values for each parameter in the object, according the to parameter keys order
@@ -210,7 +218,6 @@ class Oimainobject(object):
             ret.append(np.clip(getattr(self, "_"+item+"_P0")(randomizer.uniform()), a_min=getattr(self, item+"_bounds")[0], a_max=getattr(self, item+"_bounds")[1]))
         return ret
 
-
     def compVis(self, oidata, params=None, flat=False):
         """
         Calculates the complex visibilities of the object
@@ -220,7 +227,6 @@ class Oimainobject(object):
             return self._calcCompVis(u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'], blwl=oidata.uvwl['blwl'], oidata=oidata)
         else:
             return oidata.remorph(self._calcCompVis(u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'], blwl=oidata.uvwl['blwl'], oidata=oidata))
-
 
     def save(self, filename, append=False, clobber=False):
         ext = '.oif.fits'

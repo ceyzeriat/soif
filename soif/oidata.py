@@ -595,7 +595,7 @@ class Oifits(object):
             randomizer = core.gen_generator()
             return randomizer.uniform(low=self.systematic_bounds[0], high=self.systematic_bounds[1])
         else:
-            exc.raiseIt(NoSystematicsFit, self.raiseError)
+            exc.raiseIt(exc.NoSystematicsFit, self.raiseError)
 
     def remorph(self, viscomp):
         ret = []

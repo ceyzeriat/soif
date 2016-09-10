@@ -53,14 +53,15 @@ class NoTargetTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoTargetTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_TARGET table in the oifits file '%s'! Better go get some coffee before tackling that one" % (src)
+        self.message = "There's no OI_TARGET table in the oifits file '{}'! Better go get some coffee"
+                       "before tackling that one".format(src)
 
 class NoDataModel(OIException):
     """
     If there is no Oidata provided with the model
     """
     def __init__(self, *args, **kwargs):
-        super(NoTargetTable, self).__init__(src, *args, **kwargs)
+        super(NoDataModel, self).__init__(src, *args, **kwargs)
         self.message = "There is no data in this model. You can't do that you are specifically authorized"
 
 class NoWavelengthTable(OIException):
@@ -69,7 +70,7 @@ class NoWavelengthTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoWavelengthTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_WAVELENGTH table in the oifits file '%s'! Haha, you're screwed!" % (src)
+        self.message = "There's no OI_WAVELENGTH table in the oifits file '{}'! Haha, you're screwed!".format(src)
 
 class ReadOnly(OIException):
     """
@@ -77,7 +78,7 @@ class ReadOnly(OIException):
     """
     def __init__(self, attr, *args, **kwargs):
         super(ReadOnly, self).__init__(attr, *args, **kwargs)
-        self.message = "Attribute '%s' is read-only. What did you think?" % (attr)
+        self.message = "Attribute '{}' is read-only. What did you think?".format(attr)
 
 class InvalidDataType(OIException):
     """
@@ -85,7 +86,7 @@ class InvalidDataType(OIException):
     """
     def __init__(self, datatype, *args, **kwargs):
         super(InvalidDataType, self).__init__(datatype, *args, **kwargs)
-        self.message = "Surprise! Data type '%s' does not exist" % (datatype)
+        self.message = "Surprise! Data type '{}' does not exist".format(datatype)
 
 class HduDatatypeMismatch(OIException):
     """
@@ -93,7 +94,8 @@ class HduDatatypeMismatch(OIException):
     """
     def __init__(self, hduhead, datatype, *args, **kwargs):
         super(HduDatatypeMismatch, self).__init__(hduhead, datatype, *args, **kwargs)
-        self.message = "Data type '%s' and hdu with '%s' data do not match. Don't mix apples with camembert" % (datatype, hduhead)
+        self.message = "Data type '{}' and hdu with '{}' data do not match. Don't mix apples with camembert"
+                        .format(datatype, hduhead)
 
 class BadMaskShape(OIException):
     """
@@ -101,7 +103,7 @@ class BadMaskShape(OIException):
     """
     def __init__(self, shape, *args, **kwargs):
         super(BadMaskShape, self).__init__(shape, *args, **kwargs)
-        self.message = "Bad mask shape. Should be '%s'. Nudge it and try again" % shape
+        self.message = "Bad mask shape. Should be '{}'. Nudge it and try again".format(shape)
 
 class WrongData(OIException):
     """
@@ -109,7 +111,8 @@ class WrongData(OIException):
     """
     def __init__(self, typ, *args, **kwargs):
         super(WrongData, self).__init__(typ, *args, **kwargs)
-        self.message = "Wrong data given, should be '%s'. Already told you, don't mix apples and camembert" % typ
+        self.message = "Wrong data given, should be '{}'. Already told you, don't mix apples and camembert"
+                        .format(typ)
 
 class IncompatibleData(OIException):
     """
@@ -117,7 +120,7 @@ class IncompatibleData(OIException):
     """
     def __init__(self, typ1, typ2, *args, **kwargs):
         super(IncompatibleData, self).__init__(typ1, typ2, *args, **kwargs)
-        self.message = "Can't merge '%s' and '%s'. You looked very optimistic until now" % (typ1, typ2)
+        self.message = "Can't merge '{}' and '{}'. You looked very optimistic until now".format(typ1, typ2)
 
 class NotADataHdu(OIException):
     """
@@ -125,7 +128,7 @@ class NotADataHdu(OIException):
     """
     def __init__(self, idx, src, *args, **kwargs):
         super(NotADataHdu, self).__init__(idx, src, *args, **kwargs)
-        self.message = "Hdu index '%s' in file '%s' does not contain data. Yep. Too bad" % (idx, src)
+        self.message = "Hdu index '{}' in file '{}' does not contain data. Yep. Too bad".format(idx, src)
 
 class NoSystematicsFit(OIException):
     """
@@ -141,4 +144,69 @@ class NotCallable(OIException):
     """
     def __init__(self, fct, *args, **kwargs):
         super(NotCallable, self).__init__(fct, *args, **kwargs)
-        self.message = "'%s' should be callable. Get up and go get it" % fct
+        self.message = "'{}' should be callable. Get up and go get it".format(fct)
+
+class NoEMCEE(OIException):
+    """
+    EMCEE is not installed
+    """
+    def __init__(self, *args, **kwargs):
+        super(NoEMCEE, self).__init__(*args, **kwargs)
+        self.message = "EMCEE is not installed. How come it is not?"
+
+class AllParamsSet(OIException):
+    """
+    When all parameters are set - nothing to run EMCEE on
+    """
+    def __init__(self, *args, **kwargs):
+        super(AllParamsSet, self).__init__(*args, **kwargs)
+        self.message = "All parameters are set, there is no reason for MCMC. That, was a successful simulation!"
+
+class InvalidBound(OIException):
+    """
+    Unitary model with invalid bounds
+    """
+    def __init__(self, *args, **kwargs):
+        super(InvalidBound, self).__init__(name, param, vv, *args, **kwargs)
+        self.message = "Object '{}', parameter '{}' has invalid bounds: {}."
+                        .format(name, itparamem, vv))
+
+class NotFoundName(OIException):
+    """
+    Did not find the unitary model from its name
+    """
+    def __init__(self, *args, **kwargs):
+        super(NotFoundName, self).__init__(name, *args, **kwargs)
+        self.message = "Object name '{}' not found.".format(name))
+
+class InalidUnitaryModel(OIException):
+    """
+    Did not find unitary model
+    """
+    def __init__(self, *args, **kwargs):
+        super(InalidUnitaryModel, self).__init__(typ, *args, **kwargs)
+        self.message = "Unitary model '{}' does not exist.".format(typ))
+
+class BusyName(OIException):
+    """
+    The unitary model name already exists
+    """
+    def __init__(self, *args, **kwargs):
+        super(BusyName, self).__init__(name, *args, **kwargs)
+        self.message = "Object name '{}' already exists.".format(name))
+
+class BadParamsSize(OIException):
+    """
+    The input parameter 'params' has the wrong size
+    """
+    def __init__(self, *args, **kwargs):
+        super(BadParamsSize, self).__init__(size, *args, **kwargs)
+        self.message = "'params' size mismatch, should be '{:d}'".format(size))
+
+class MasperpxMismatch(OIException):
+    """
+    The unitary model name already exists
+    """
+    def __init__(self, *args, **kwargs):
+        super(MasperpxMismatch, self).__init__(mpp1, mpp2, *args, **kwargs)
+        self.message = "Cannot rescale image, masperpx mismatch '{:.3f}' and '{:.3f}'".format(mpp1, mpp2))
