@@ -130,9 +130,11 @@ class Oigrab(object):
                 if not ret:
                     print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}"
                           .format(core.hduToDataType(item), idx, "-"*52))
-                aa = targetindexnumber.reshape((-1, nunique))[:, 0]
-                bb = MJD[targetindexnumber].reshape((-1, nunique))[:, 0]
-                for tgtidx, sMJD in zip(aa, bb):
+                shapedtargetnums = targetindexnumber.reshape((-1, nunique))[:, 0]
+                bb = MJD[targetindexnumber]
+                bb.reshape((-1, nunique))
+                bb = bb[:, 0]
+                for tgtidx, sMJD in zip(shapedtargetnums, bb):
                     tgtfilter = slice(tgtidx*nunique, (tgtidx+1)*nunique)
                     tgtid = item.data['TARGET_ID'][tgtfilter]
                     if not ret:
