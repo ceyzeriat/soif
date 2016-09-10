@@ -128,8 +128,7 @@ class Oigrab(object):
                 targetindexnumber, MJD, (ndata, nset, nunique, nholes, nwl) = core.gethduMJD(item, withdet=True)
                 tgtlist[idx] = []
                 if not ret:
-                    print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}"
-                          .format(core.hduToDataType(item), idx, "-"*52))
+                    print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}".format(core.hduToDataType(item), idx, "-"*52))
                 shapedtargetnums = targetindexnumber.reshape((-1, nunique))[:, 0]
                 bb = MJD[targetindexnumber]
                 bb.reshape((-1, nunique))
@@ -311,7 +310,7 @@ class Oidata(OidataEmpty):
         return "{} data, shape: {}, wl: {}{}".format(self.datatype,
                                                      core.maskedshape(self.shapedata, np.logical_not(self.mask).sum()),
                                                      self._wlmin,
-                                                     " to %.2f".format(self._wlmax) if self._wlspan != 0 else "")
+                                                     " to {:.2f}".format(self._wlmax) if self._wlspan != 0 else "")
     
     @property
     def data(self):

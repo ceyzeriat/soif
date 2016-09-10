@@ -93,8 +93,7 @@ class HduDatatypeMismatch(OIException):
     """
     def __init__(self, hduhead, datatype, *args, **kwargs):
         super(HduDatatypeMismatch, self).__init__(hduhead, datatype, *args, **kwargs)
-        self.message = "Data type '{}' and hdu with '{}' data do not match. Don't mix apples with camembert"
-                        .format(datatype, hduhead)
+        self.message = "Data type '{}' and hdu with '{}' data do not match. Don't mix apples with camembert".format(datatype, hduhead)
 
 class BadMaskShape(OIException):
     """
@@ -110,8 +109,7 @@ class WrongData(OIException):
     """
     def __init__(self, typ, *args, **kwargs):
         super(WrongData, self).__init__(typ, *args, **kwargs)
-        self.message = "Wrong data given, should be '{}'. Already told you, don't mix apples and camembert"
-                        .format(typ)
+        self.message = "Wrong data given, should be '{}'. Already told you, don't mix apples and camembert".format(typ)
 
 class IncompatibleData(OIException):
     """
@@ -167,8 +165,7 @@ class InvalidBound(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(InvalidBound, self).__init__(name, param, vv, *args, **kwargs)
-        self.message = "Object '{}', parameter '{}' has invalid bounds: {}."
-                        .format(name, itparamem, vv))
+        self.message = "Object '{}', parameter '{}' has invalid bounds: {}.".format(name, itparamem, vv)
 
 class NotFoundName(OIException):
     """
@@ -176,7 +173,7 @@ class NotFoundName(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(NotFoundName, self).__init__(name, *args, **kwargs)
-        self.message = "Object name '{}' not found.".format(name))
+        self.message = "Object name '{}' not found.".format(name)
 
 class InalidUnitaryModel(OIException):
     """
@@ -184,7 +181,7 @@ class InalidUnitaryModel(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(InalidUnitaryModel, self).__init__(typ, *args, **kwargs)
-        self.message = "Unitary model '{}' does not exist.".format(typ))
+        self.message = "Unitary model '{}' does not exist.".format(typ)
 
 class BusyName(OIException):
     """
@@ -192,7 +189,7 @@ class BusyName(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(BusyName, self).__init__(name, *args, **kwargs)
-        self.message = "Object name '{}' already exists.".format(name))
+        self.message = "Object name '{}' already exists.".format(name)
 
 class BadParamsSize(OIException):
     """
@@ -200,7 +197,7 @@ class BadParamsSize(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(BadParamsSize, self).__init__(size, *args, **kwargs)
-        self.message = "'params' size mismatch, should be '{:d}'".format(size))
+        self.message = "'params' size mismatch, should be '{:d}'".format(size)
 
 class MasperpxMismatch(OIException):
     """
@@ -208,4 +205,4 @@ class MasperpxMismatch(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(MasperpxMismatch, self).__init__(mpp1, mpp2, *args, **kwargs)
-        self.message = "Cannot rescale image, masperpx mismatch '{:.3f}' and '{:.3f}'".format(mpp1, mpp2))
+        self.message = "Cannot rescale image, masperpx mismatch '{:.3f}' and '{:.3f}'".format(mpp1, mpp2)

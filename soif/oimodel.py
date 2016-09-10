@@ -223,21 +223,13 @@ class Oimodel(object):
         Calculates the complex visibility of the model from all unitary models
         """
         if self._hasdata:
-<<<<<<< HEAD
             totviscomp = self._compVis(u=self.oidata.uvwl['u'], v=self.oidata.uvwl['v'], wl=self.oidata.uvwl['wl'],
                 blwl=self.oidata.uvwl['blwl'], params=params)
-            return self.self.oidata.remorph(totviscomp)
-        else:
-            if u is None or v is None or wl is None:
-                if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src):
-                    return
-=======
-            totviscomp = self._compVis(u=self.uvwl['u'], v=self.uvwl['v'], wl=self.uvwl['wl'], blwl=self.uvwl['blwl'], params=params)
             return self.oidata.remorph(totviscomp)
         else:
             if u is None or v is None or wl is None:
-                if exc.raiseIt(exc.NoDataModel, self.raiseError): return
->>>>>>> 4e24b5a1f722f7ec3ff15ccbdc8e5f4312d2dc95
+                if exc.raiseIt(exc.NoDataModel, self.raiseError):
+                    return
             else:
                 return self._compVis(u=u, v=v, wl=wl, params=params)            
 

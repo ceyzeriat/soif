@@ -62,11 +62,12 @@ class Oimainobject(object):
                     .format(core.font.orange, core.font.normal, item, name))
         for i, item in enumerate(self._keys):
             found = False
-            if item, vals in priors.items():
+            if item in priors.keys():
                 found = True
-                setattr(self, item, float(vals))
-                setattr(self, "_"+item, float(vals))
-            if item, vals in bounds.items():
+                setattr(self, item, float(priors[item]))
+                setattr(self, "_"+item, float(priors[item]))
+            if item in bounds.keys():
+                vals = bounds[item]
                 found = True
                 if len(vals) < 2:  # error if less than 2 bounds
                     if exc.raiseIt(exc.InvalidBound, self.raiseError, name=name, param=item, vv=str(vals)):

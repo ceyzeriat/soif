@@ -67,8 +67,7 @@ class Oifiting(MCres):
                                     niters=self.niters, burnInIts=self.burnInIts)
 
     def _info(self):
-        return core.font.blue+"<SOIF Fit>{}\n {:d} walkers, {:d} burn-in, {:d} iters\n{}"
-               .format(core.font.normal, self.nwalkers, self.burnInIts, self.niters, str(self.model))
+        return core.font.blue+"<SOIF Fit>{}\n {:d} walkers, {:d} burn-in, {:d} iters\n{}".format(core.font.normal, self.nwalkers, self.burnInIts, self.niters, str(self.model))
 
     def run(self, niters, burnInIts=0):
         '''
@@ -211,7 +210,7 @@ class Oifiting(MCres):
         if visu is None:
             visu = np.abs
         #toplot = visu(self.model.compimage(sepmax=sepmax, wl=wl, params=params, nbpts=nbpts), **visuargs)
-        toplot = self.model.compuvimage(blmax=nbpts*2*sepmax*core.MAS2RAD/np.pi/wl), wl=wl, params=params, nbpts=nbpts)
+        toplot = self.model.compuvimage(blmax=nbpts*2*sepmax*core.MAS2RAD/np.pi/wl, wl=wl, params=params, nbpts=nbpts)
         toplot = np.abs(np.fft.fftshift(np.fft.ifft2(toplot)))
         if cm_min is None:
             cm_min = toplot.min()
