@@ -108,9 +108,9 @@ ALL_FILTERS['H']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['H']['start_wl
 ALL_FILTERS['K']['span_10pts'] = np.logspace(np.log10(ALL_FILTERS['K']['start_wl']), np.log10(ALL_FILTERS['K']['end_wl']), 10)
 
 
-def deproj_image(x, y, inc, pa, polar_in=True, polar_out=True): return _deproj(x=x, y=y, inc=inc, pa=pa, polar_in=True, polar_out=True, fourier_plan=False)
+def deproj_image(x, y, inc, pa, polar_in=True, polar_out=True): return _deproj(x=x, y=y, inc=inc, pa=pa, polar_in=polar_in, polar_out=polar_out, fourier_plan=False)
 
-def deproj_fourier(x, y, inc, pa, polar_in=True, polar_out=True): return _deproj(x=x, y=y, inc=inc, pa=pa, polar_in=True, polar_out=True, fourier_plan=True)
+def deproj_fourier(x, y, inc, pa, polar_in=True, polar_out=True): return _deproj(x=x, y=y, inc=inc, pa=pa, polar_in=polar_in, polar_out=polar_out, fourier_plan=True)
 
 def _deproj(x, y, inc, pa, polar_out=True, polar_in=True, fourier_plan=False):
     if polar_in:
@@ -124,7 +124,7 @@ def _deproj(x, y, inc, pa, polar_out=True, polar_in=True, fourier_plan=False):
         X = x*np.cos(pa) + y*np.sin(pa)
         Y = (y*np.cos(pa) - x*np.sin(pa))/np.cos(inc)
     x, y = np.hypot(Y,X), (np.arctan2(X,Y)-pa)%(2*np.pi)
-    if not polar: return x*np.cos(y), x*np.sin(y)
+    if not polar_out: return x*np.cos(y), x*np.sin(y)
     return x, y
 
 

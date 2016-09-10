@@ -39,6 +39,7 @@ from .oiunitmodels import *
 from .oimainobject import Oimainobject
 from . import oiexception as exc
 from . import core
+from .oidata import Oifits
 np = core.np
 
 __all__ = ['Oimodel']
@@ -131,17 +132,17 @@ class Oimodel(object):
         idobj can be the name of the object or its index in the model list 
         """
         if not isinstance(idobj, int):
-            idobj = core.clean_name(idobj)
-            if not hasattr(self, "o_"+idobj):
-                if exc.raiseIt(exc.NotFoundName, self.raiseError, name=idobj):
+            name = core.clean_name(idobj)
+            if not hasattr(self, "o_"+name):
+                if exc.raiseIt(exc.NotFoundName, self.raiseError, name=name):
                     return
-            ind = self._objs.index(getattr(self, "o_"+idobj))
+            ind = self._objs.index(getattr(self, "o_"+name))
         else:
-            ind = name
-            idobj = self._objs[ind].idobj
+            ind = idobj
+            name = self._objs[ind].name
         dummy = self._objs.pop(ind)
-        delattr(self, "o_"+idobj)
-        print("{}Deleted object '{}'{}.".format(core.font.blue, idobj, core.font.normal))
+        delattr(self, "o_"+name)
+        print("{}Deleted object '{}'{}.".format(core.font.blue, name, core.font.normal))
         self.nobj -= 1
         dum = self.nparamsObjs
 
@@ -222,6 +223,7 @@ class Oimodel(object):
         Calculates the complex visibility of the model from all unitary models
         """
         if self._hasdata:
+<<<<<<< HEAD
             totviscomp = self._compVis(u=self.oidata.uvwl['u'], v=self.oidata.uvwl['v'], wl=self.oidata.uvwl['wl'],
                 blwl=self.oidata.uvwl['blwl'], params=params)
             return self.self.oidata.remorph(totviscomp)
@@ -229,6 +231,13 @@ class Oimodel(object):
             if u is None or v is None or wl is None:
                 if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src):
                     return
+=======
+            totviscomp = self._compVis(u=self.uvwl['u'], v=self.uvwl['v'], wl=self.uvwl['wl'], blwl=self.uvwl['blwl'], params=params)
+            return self.oidata.remorph(totviscomp)
+        else:
+            if u is None or v is None or wl is None:
+                if exc.raiseIt(exc.NoDataModel, self.raiseError): return
+>>>>>>> 4e24b5a1f722f7ec3ff15ccbdc8e5f4312d2dc95
             else:
                 return self._compVis(u=u, v=v, wl=wl, params=params)            
 
@@ -369,7 +378,7 @@ class Oimodel(object):
 
     def residual(self, params, c=None, cmap='jet', cm_min=None, cm_max=None, datatype='All'):
         if not self._hasdata:
-            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+            if exc.raiseIt(exc.NoDataModel, self.raiseError): return
         calcindex = {'vis2':0, 't3phi':1, 't3amp':2, 'visphi':3, 'visamp':4}
         fullmodel = self.compVis(params=params)
         cm_min_orig = cm_min
@@ -432,7 +441,7 @@ class Oimodel(object):
 
     def likelihood(self, params, customlike=None, chi2=False, **kwargs):
         if not self._hasdata:
-            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+            if exc.raiseIt(exc.NoDataModel, self.raiseError): return
         kwargs['chi2'] = chi2
         return standardLikelihood(params=params, model=self, customlike=customlike, kwargs=kwargs)
 
@@ -500,7 +509,7 @@ def standardLikelihood(params, model, customlike=None, kwargs={}):
             if not (model.oidata.systematic_bounds[0] <= model.oidata.systematic_prior <= model.oidata.systematic_bounds[1]):
                 return -np.inf # exit with -inf if params outside bounds
             #parampos += 1
-        if customlike is not None: return customlike(params=params, model=self, **kwargs)
+        if customlike is not None: return customlike(params=params, model=model, **kwargs)
         if not chi2:
             pass
             #ln_prior += getattr(item, arg+'_prior_lnfunc')(params[parampos], params=params, parampos=parampos, **getattr(item, arg+'_prior_kwargs'))
