@@ -213,7 +213,7 @@ class Oimainobject(object):
 
     def compVis(self, oidata, params=None, flat=False):
         """
-        Does the paperwork before calculating the complex visibilities of the object
+        Calculates the complex visibilities of the object
         """
         if params is not None: self.setParams(params)
         if flat:

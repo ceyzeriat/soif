@@ -68,7 +68,7 @@ class Oigrab(object):
                 break
         else:
             hdus.close()
-            if exc.raiseIt(exc.NoTargetTable, self.raiseError, src=self.src): return False
+            if exc.raiseIt(exc.NoTargetTable, self.raiseError, src=self.src): return
         self._targets = {}
         for ind, tgt in zip(hdutgt.data["TARGET_ID"], hdutgt.data["TARGET"]):
             self._targets[ind] = tgt
@@ -165,7 +165,7 @@ class OidataEmpty(object):
         self.raiseError = bool(kwargs.pop('raiseError', True))
         self.datatype = str(datatype).upper()
         if self.datatype not in core.ATTRDATATYPE.keys():
-            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype): return False
+            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype): return
         self._has = False
         self._useit = False
 
@@ -178,6 +178,9 @@ class OidataEmpty(object):
 
     @property
     def useit(self):
+        """
+        Turn this True or False whether you wan't the fitting to include this datatype
+        """
         return (self._useit and self._has)
     @useit.setter
     def useit(self, value):
@@ -202,9 +205,9 @@ class Oidata(OidataEmpty):
         hduwl = hdus[self._input_hduwlidx[-1]]
 
         if self.datatype not in core.ATTRDATATYPE.keys():
-            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype): return False
+            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype): return
         if core.DATAKEYSDATATYPE[self.datatype]['data'] not in core.hduToColNames(hdu):
-            if exc.raiseIt(exc.HduDatatypeMismatch, self.raiseError, hduhead=core.hduToDataType(hdu), datatype=self.datatype): return False
+            if exc.raiseIt(exc.HduDatatypeMismatch, self.raiseError, hduhead=core.hduToDataType(hdu), datatype=self.datatype): return
 
         self._input_degree = [bool(degree)]
         self._input_flatten = [bool(flatten)]
@@ -442,10 +445,10 @@ class Oifits(object):
 
         self.erb_sigma = core.ident if erb_sigma is None else erb_sigma
         if not callable(self.erb_sigma):
-            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="erb_sigma"): return False
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="erb_sigma"): return
         self.sigma_erb = core.ident if sigma_erb is None else sigma_erb
         if not callable(self.sigma_erb):
-            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="sigma_erb"): return False
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="sigma_erb"): return
         self.systematic_bounds = None if systematic_bounds is None else list(map(float, list(systematic_bounds)[:2]))
         self.systematic_prior = None if systematic_prior is None else float(systematic_prior)
         self._systematic_prior = self.systematic_prior

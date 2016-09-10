@@ -45,10 +45,13 @@ __all__ = ['Oimodel']
 
 
 class Oimodel(object):
-    def __init__(self, oidata, objs=[], tweakparams=None, **kwargs):
+    def __init__(self, oidata=None, objs=[], tweakparams=None, **kwargs):
         self._objs = []
         self.raiseError = bool(kwargs.pop('raiseError', True))
-        self.oidata = oidata
+        if isinstance(oidata, Oifits):
+            self.oidata = oidata
+        else:
+            self.oidata = None
         if tweakparams is not None and not callable(tweakparams):
             if exc.raiseIt(exc.NotCallable, self.raiseError, fct="tweakparams"): return False
         self._tweakparams = tweakparams
@@ -61,16 +64,26 @@ class Oimodel(object):
                 self.add_obj(item)
 
     def _info(self):
-        return core.font.blue+"<SOIF Model>%s\n %s objects:\n  %s\n%s"%(core.font.normal, self.nobj, "\n  ".join(map(str, self._objs)), str(self.oidata))
+        txt = core.font.blue+"<SOIF Model>%s\n %s objects:\n  %s" % (core.font.normal, self.nobj, "\n  ".join(map(str, self._objs)))
+        if self._hasdata:
+            return "%s\n%s" % (txt, str(self.oidata))
+        else:
+            return txt
     def __repr__(self):
         return self._info()
     def __str__(self):
         return self._info()
 
-
+    @property
+    def _hasdata(self):
+        return self.oidata is not None
+    
     @property
     def nparams(self):
-        return self._nparamsObj + self.oidata.systematic_fit
+        if self._hasdata:
+            return self._nparamsObj + int(self.oidata.systematic_fit)
+        else:
+            return self._nparamsObj
     @nparams.setter
     def nparams(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="nparams")
@@ -105,7 +118,8 @@ class Oimodel(object):
             print(core.font.red+"ERROR: Could not find the object name for '%s', name given: %s%s" % (typ, name, core.font.normal))
             return
         setattr(self, "o_"+name, self._objs[-1]) # quick access as a class property
-        if hasattr(self._objs[-1], '_prepare'): self._objs[-1]._prepare(oidata=self.oidata)
+        if hasattr(self._objs[-1], 'prepare') and self._hasdata:
+            self._objs[-1].prepare(oidata=self.oidata)
         self.nobj += 1
         dum = self.nparamsObjs
     
@@ -134,7 +148,7 @@ class Oimodel(object):
         ret = []
         for item in self._objs:
             ret += item.getP0()
-        if self.oidata.systematic_fit: ret += [self.oidata.systematic_p0()]
+        if getattr(self.oidata, "systematic_fit", False): ret += [self.oidata.systematic_p0()]
         return ret
 
 
@@ -144,7 +158,7 @@ class Oimodel(object):
         for item in self._objs:
             for arg in item._pkeys:
                 ret.append(item.name+"_"+arg)
-        if self.oidata.systematic_fit: ret += ["sys"]
+        if getattr(self.oidata, "systematic_fit", False): ret += ["sys"]
         return ret
     @paramstr.setter
     def paramstr(self, value):
@@ -159,7 +173,7 @@ class Oimodel(object):
         ret = []
         for item in self._objs:
             ret += getattr(item, "params", [])
-        if self.oidata.systematic_fit: ret += [self.oidata.systematic_prior if self.oidata.systematic_prior is not None else self.oidata.systematic_p0()]
+        if getattr(self.oidata, "systematic_fit", False): ret += [self.oidata.systematic_prior if self.oidata.systematic_prior is not None else self.oidata.systematic_p0()]
         return ret
     @params.setter
     def params(self, value):
@@ -186,52 +200,58 @@ class Oimodel(object):
         for item in self._objs:
             item.setParams(params=params[parampos:parampos+item._nparams], priors=priors)
             parampos += item._nparams
-        if self.oidata.systematic_fit:
+        if getattr(self.oidata, "systematic_fit", False):
             self.oidata.systematic_prior = params[parampos]
             self.oidata._systematic_prior = self.oidata.systematic_prior
 
 
-    def compVis(self, params=None):
+    def compVis(self, params=None, u=None, v=None, wl=None):
         """
-        Calculate the complex visibility of the model from each separate object
+        Calculates the complex visibility of the model from all unitary models
         """
-        if params is None: params = self.getP0() # initialize at p0 in case no params is given
-        if self._tweakparams is not None: self._tweakparams(self, params)
-        parampos = 0
-        totflx = 0.
-        totviscomp = np.zeros(self.oidata.uvwl['u'].shape, dtype=complex) # initialize array
-        for item in self._objs:
-            viscomp, flx = item.compVis(oidata=self.oidata, params=params[parampos:parampos+item._nparams], flat=True)
-            totviscomp += viscomp*flx
-            totflx += flx
-            parampos += item._nparams
-        totviscomp /= totflx
-        return self.oidata.remorph(totviscomp)
+        if self._hasdata:
+            totviscomp = self._compVis(u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'], blwl=oidata.uvwl['blwl'], params=params)
+            return self.oidata.remorph(totviscomp)
+        else:
+            if u is None or v is None or wl is None:
+                if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+            else:
+                return self._compVis(u=u, v=v, wl=wl, params=params)            
 
-    def compuvimage(self, blmax, wl=None, params=None, nbpts=101):
-        parampos = 0
-        totFluxvis2 = 0.
-        if wl is None: wl = self.oidata._wlmin+self.oidata._wlspan*0.5
-        compvis = np.zeros((nbpts, nbpts), dtype=complex) # initialize array
+
+    def calcUVImage(self, blmax, wl, params=None, nbpts=101):
+        """
+        Outputs the complex visibility for a grid a (u,v) in [-blmax,blmax], with nbpts in each dimension
+        """
         u, v = np.meshgrid(np.linspace(-blmax, blmax, nbpts), np.linspace(-blmax, blmax, nbpts))
-        if self._tweakparams is not None: self._tweakparams(self, params)
-        if params is not None: self.setParams(params)
-        for item in self._objs:
-            try:
-                vis2 = item._calcCompVis(u=u, v=v, wl=wl, blwl=np.hypot(u, v)/wl)
-            except AttributeError:
-                raise AttributeError("it looks like some parameters are not initialized. Input your parameters after params=[...]")
-            compvis += vis2[0]*vis2[1]
-            totFluxvis2 += vis2[1]
-            parampos += item._nparams
-        return compvis/totFluxvis2
+        return self._compVis(u=u, v=v, wl=wl, blwl=np.hypot(u, v)/wl, params=params)
 
-    def compimage(self, params=None, sepmax=None, wl=None, masperpx=None, nbpts=101, psfConvolve=None, **kwargs):
+
+    def _compVis(self, u, v, wl, blwl, params=None):
+        parampos = 0
+        totFluxvis = 0.
+        totviscomp = np.zeros(u.shape, dtype=complex) # initialize array
+        if params is None:
+            params = self.getP0() # initialize at p0 in case no params is given
+        else:
+            self.setParams(params)
+        if self._tweakparams is not None: self._tweakparams(self, params)
+        for item in self._objs:
+            compvis, flx = item._calcCompVis(u=u, v=v, wl=wl, blwl=blwl)
+            compvis *= flx
+            totviscomp += compvis
+            totFluxvis += flx
+            parampos += item._nparams
+        totviscomp /= totFluxvis
+        return totviscomp
+
+
+    def calcImage(self, params=None, sepmax=None, wl=None, masperpx=None, nbpts=101, psfConvolve=None, **kwargs):
         """
         psfConvolve in mas (lambda/D)
         """
         parampos = 0
-        totFluxvis2 = 0.
+        totFluxvis = 0.
         # check for set-resolution objects
         masperpxfixed = None
         nbptscheck = nbpts
@@ -320,6 +340,8 @@ class Oimodel(object):
         if ret: return toplot
 
     def residual(self, params, c=None, cmap='jet', cm_min=None, cm_max=None, datatype='All'):
+        if not self._hasdata:
+            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
         calcindex = {'vis2':0, 't3phi':1, 't3amp':2, 'visphi':3, 'visamp':4}
         fullmodel = self.compVis(params=params)
         cm_min_orig = cm_min
@@ -381,6 +403,8 @@ class Oimodel(object):
     #    pass
 
     def likelihood(self, params, customlike=None, chi2=False, **kwargs):
+        if not self._hasdata:
+            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
         kwargs['chi2'] = chi2
         return standardLikelihood(params=params, model=self, customlike=customlike, kwargs=kwargs)
 
@@ -412,7 +436,7 @@ class Oimodel(object):
         for item in self._objs:
             item.save(filename, append=True, clobber=clobber)
 
-        self.oidata.save(filename, append=True, clobber=clobber)
+        if self._hasdata: self.oidata.save(filename, append=True, clobber=clobber)
 
         return filename
 

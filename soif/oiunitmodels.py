@@ -140,19 +140,19 @@ class BGimage(Oimainobject):
         self.totFlux = img.sum() if totFlux is None else float(totFlux)
         self._img = img/self.totFlux
         self._prepared = False
-        if kwargs.get('oidata') is not None: self._prepare(oidata=kwargs['oidata'])
+        if kwargs.get('oidata') is not None: self.prepare(oidata=kwargs['oidata'])
 
     def _calcCompVis(self, *args, **kwargs):
         return self._compvis, 1./self.cr
 
-    def _prepare(self, oidata):
+    def prepare(self, oidata):
         if self._prepared: return
         self._compvis = core.calcImgVis(img=self.img, masperpx=self.masperpx, u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'])
         self._prepared = True
 
     def prepare(self, oidata, force=False):
         if force: self._prepared = False
-        self._prepare(oidata=oidata)
+        self.prepare(oidata=oidata)
 
     @property
     def img(self):

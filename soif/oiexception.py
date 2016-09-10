@@ -53,7 +53,15 @@ class NoTargetTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoTargetTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_TARGET table in the oifits file '%s'! Go get some coffee!" % (src)
+        self.message = "There's no OI_TARGET table in the oifits file '%s'! Better go get some coffee before tackling that one" % (src)
+
+class NoDataModel(OIException):
+    """
+    If there is no Oidata provided with the model
+    """
+    def __init__(self, *args, **kwargs):
+        super(NoTargetTable, self).__init__(src, *args, **kwargs)
+        self.message = "There is no data in this model. You can't do that you are specifically authorized"
 
 class NoWavelengthTable(OIException):
     """
@@ -61,7 +69,7 @@ class NoWavelengthTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoWavelengthTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_WAVELENGTH table in the oifits file '%s'! You're pretty much screwed!" % (src)
+        self.message = "There's no OI_WAVELENGTH table in the oifits file '%s'! Haha, you're screwed!" % (src)
 
 class ReadOnly(OIException):
     """
@@ -69,7 +77,7 @@ class ReadOnly(OIException):
     """
     def __init__(self, attr, *args, **kwargs):
         super(ReadOnly, self).__init__(attr, *args, **kwargs)
-        self.message = "Attribute '%s' is read-only" % (attr)
+        self.message = "Attribute '%s' is read-only. What did you think?" % (attr)
 
 class InvalidDataType(OIException):
     """
@@ -77,7 +85,7 @@ class InvalidDataType(OIException):
     """
     def __init__(self, datatype, *args, **kwargs):
         super(InvalidDataType, self).__init__(datatype, *args, **kwargs)
-        self.message = "Data type '%s' does not exist" % (datatype)
+        self.message = "Surprise! Data type '%s' does not exist" % (datatype)
 
 class HduDatatypeMismatch(OIException):
     """
@@ -85,7 +93,7 @@ class HduDatatypeMismatch(OIException):
     """
     def __init__(self, hduhead, datatype, *args, **kwargs):
         super(HduDatatypeMismatch, self).__init__(hduhead, datatype, *args, **kwargs)
-        self.message = "Data type '%s' and hdu with '%s' data do not match" % (datatype, hduhead)
+        self.message = "Data type '%s' and hdu with '%s' data do not match. Don't mix apples with camembert" % (datatype, hduhead)
 
 class BadMaskShape(OIException):
     """
@@ -93,7 +101,7 @@ class BadMaskShape(OIException):
     """
     def __init__(self, shape, *args, **kwargs):
         super(BadMaskShape, self).__init__(shape, *args, **kwargs)
-        self.message = "Bad mask shape. Should be '%s'" % shape
+        self.message = "Bad mask shape. Should be '%s'. Nudge it and try again" % shape
 
 class WrongData(OIException):
     """
@@ -101,7 +109,7 @@ class WrongData(OIException):
     """
     def __init__(self, typ, *args, **kwargs):
         super(WrongData, self).__init__(typ, *args, **kwargs)
-        self.message = "Wrong data given, should be '%s'" % typ
+        self.message = "Wrong data given, should be '%s'. Already told you, don't mix apples and camembert" % typ
 
 class IncompatibleData(OIException):
     """
@@ -109,7 +117,7 @@ class IncompatibleData(OIException):
     """
     def __init__(self, typ1, typ2, *args, **kwargs):
         super(IncompatibleData, self).__init__(typ1, typ2, *args, **kwargs)
-        self.message = "Can't merge '%s' and '%s'" % (typ1, typ2)
+        self.message = "Can't merge '%s' and '%s'. You looked very optimistic until now" % (typ1, typ2)
 
 class NotADataHdu(OIException):
     """
@@ -117,7 +125,7 @@ class NotADataHdu(OIException):
     """
     def __init__(self, idx, src, *args, **kwargs):
         super(NotADataHdu, self).__init__(idx, src, *args, **kwargs)
-        self.message = "Hdu index '%s' in file '%s' does not contain data" % (idx, src)
+        self.message = "Hdu index '%s' in file '%s' does not contain data. Yep. Too bad" % (idx, src)
 
 class NoSystematicsFit(OIException):
     """
@@ -125,7 +133,7 @@ class NoSystematicsFit(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(NoSystematicsFit, self).__init__(*args, **kwargs)
-        self.message = "You are not fitting systematics"
+        self.message = "You are not fitting systematics. But maybe you should"
 
 class NotCallable(OIException):
     """
@@ -133,4 +141,4 @@ class NotCallable(OIException):
     """
     def __init__(self, fct, *args, **kwargs):
         super(NotCallable, self).__init__(fct, *args, **kwargs)
-        self.message = "'%s' should be callable" % fct
+        self.message = "'%s' should be callable. Get up and go get it" % fct
