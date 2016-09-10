@@ -53,8 +53,7 @@ class NoTargetTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoTargetTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_TARGET table in the oifits file '{}'! Better go get some coffee"
-                       "before tackling that one".format(src)
+        self.message = "There's no OI_TARGET table in the oifits file '{}'! Oups".format(src)
 
 class NoDataModel(OIException):
     """
@@ -62,7 +61,7 @@ class NoDataModel(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(NoDataModel, self).__init__(src, *args, **kwargs)
-        self.message = "There is no data in this model. You can't do that you are specifically authorized"
+        self.message = "There is no data in this model. You cannot do that you unless specifically authorized"
 
 class NoWavelengthTable(OIException):
     """
