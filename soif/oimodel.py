@@ -39,6 +39,7 @@ from .oiunitmodels import *
 from .oimainobject import Oimainobject
 from . import oiexception as exc
 from . import core
+from .oidata import Oifits
 np = core.np
 
 __all__ = ['Oimodel']
@@ -129,11 +130,11 @@ class Oimodel(object):
         idobj can be the name of the object or its index in the model list 
         """
         if not isinstance(idobj, int):
-            name = core.clean_name(name)
+            name = core.clean_name(idobj)
             if not hasattr(self, "o_"+name): raise NameError("Didn't find object name")
             ind = self._objs.index(getattr(self, "o_"+name))
         else:
-            ind = name
+            ind = idobj
             name = self._objs[ind].name
         dummy = self._objs.pop(ind)
         delattr(self, "o_"+name)
@@ -210,11 +211,11 @@ class Oimodel(object):
         Calculates the complex visibility of the model from all unitary models
         """
         if self._hasdata:
-            totviscomp = self._compVis(u=oidata.uvwl['u'], v=oidata.uvwl['v'], wl=oidata.uvwl['wl'], blwl=oidata.uvwl['blwl'], params=params)
+            totviscomp = self._compVis(u=self.uvwl['u'], v=self.uvwl['v'], wl=self.uvwl['wl'], blwl=self.uvwl['blwl'], params=params)
             return self.oidata.remorph(totviscomp)
         else:
             if u is None or v is None or wl is None:
-                if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+                if exc.raiseIt(exc.NoDataModel, self.raiseError): return
             else:
                 return self._compVis(u=u, v=v, wl=wl, params=params)            
 
@@ -341,7 +342,7 @@ class Oimodel(object):
 
     def residual(self, params, c=None, cmap='jet', cm_min=None, cm_max=None, datatype='All'):
         if not self._hasdata:
-            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+            if exc.raiseIt(exc.NoDataModel, self.raiseError): return
         calcindex = {'vis2':0, 't3phi':1, 't3amp':2, 'visphi':3, 'visamp':4}
         fullmodel = self.compVis(params=params)
         cm_min_orig = cm_min
@@ -404,7 +405,7 @@ class Oimodel(object):
 
     def likelihood(self, params, customlike=None, chi2=False, **kwargs):
         if not self._hasdata:
-            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src): return
+            if exc.raiseIt(exc.NoDataModel, self.raiseError): return
         kwargs['chi2'] = chi2
         return standardLikelihood(params=params, model=self, customlike=customlike, kwargs=kwargs)
 
@@ -472,7 +473,7 @@ def standardLikelihood(params, model, customlike=None, kwargs={}):
             if not (model.oidata.systematic_bounds[0] <= model.oidata.systematic_prior <= model.oidata.systematic_bounds[1]):
                 return -np.inf # exit with -inf if params outside bounds
             #parampos += 1
-        if customlike is not None: return customlike(params=params, model=self, **kwargs)
+        if customlike is not None: return customlike(params=params, model=model, **kwargs)
         if not chi2:
             pass
             #ln_prior += getattr(item, arg+'_prior_lnfunc')(params[parampos], params=params, parampos=parampos, **getattr(item, arg+'_prior_kwargs'))

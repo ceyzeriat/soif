@@ -25,7 +25,7 @@
 ###############################################################################
 
 
-#import matplotlib.pyplot as _plt
+# import matplotlib.pyplot as _plt
 from time import strftime
 try:
     import astropy.io.fits as pf
@@ -68,7 +68,8 @@ class Oigrab(object):
                 break
         else:
             hdus.close()
-            if exc.raiseIt(exc.NoTargetTable, self.raiseError, src=self.src): return
+            if exc.raiseIt(exc.NoTargetTable, self.raiseError, src=self.src):
+                return
         self._targets = {}
         for ind, tgt in zip(hdutgt.data["TARGET_ID"], hdutgt.data["TARGET"]):
             self._targets[ind] = tgt
@@ -76,14 +77,17 @@ class Oigrab(object):
 
     def _info(self):
         return "{}<SOIF File>{}\n File: '{}'".format(core.font.blue, core.font.normal, self.src)
+
     def __repr__(self):
         return self._info()
+
     def __str__(self):
         return self._info()
 
     @property
     def targets(self):
         return self._targets
+
     @targets.setter
     def targets(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="targets")
@@ -96,7 +100,8 @@ class Oigrab(object):
           * ret (bool): if ``True``, returns the information, otherwise prints it
 
         Returns:
-          * a dictionary {'hdu index:info'} where info corresponds to a list of (Acquisition index, Target ID, MJD, N(UV), N(wl)) tuples
+          * a dictionary {'hdu index:info'} where info corresponds to a list of (Acquisition index, Target ID, MJD,
+          N(UV), N(wl)) tuples
 
         >>> import soif.oidata as oidata
         >>> data = oidata.Oigrab('./data/datafile.oifits')
@@ -119,13 +124,14 @@ class Oigrab(object):
                 print("{}: {}".format(ind, tgt))
         tgtlist = {}
         for idx, item in enumerate(hdus):
-            if core.hduToDataType(item) is not None: # if we have data in this header
+            if core.hduToDataType(item) is not None:  # if we have data in this header
                 targetindexnumber, MJD, (ndata, nset, nunique, nholes, nwl) = core.gethduMJD(item, withdet=True)
                 tgtlist[idx] = []
                 if not ret:
-                    print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}".format(core.hduToDataType(item), idx, "-"*52))
-                aa = targetindexnumber.reshape((-1, nunique))[:,0]
-                bb = MJD[targetindexnumber].reshape((-1, nunique))[:,0]
+                    print("\n{} [hdu={}]:\nAcq. Index | Target ID |      MJD      |  UVs | N wl\n{}"
+                          .format(core.hduToDataType(item), idx, "-"*52))
+                aa = targetindexnumber.reshape((-1, nunique))[:, 0]
+                bb = MJD[targetindexnumber].reshape((-1, nunique))[:, 0]
                 for tgtidx, sMJD in zip(aa, bb):
                     tgtfilter = slice(tgtidx*nunique, (tgtidx+1)*nunique)
                     tgtid = item.data['TARGET_ID'][tgtfilter]
@@ -136,34 +142,45 @@ class Oigrab(object):
         if ret:
             return tgtlist
 
-
-    def show_filtered(self, tgt=None, mjd=[None, None], hduNums=[], vis2=True, t3phi=True, t3amp=True, visphi=True, visamp=True, verbose=False, **kwargs):
+    def show_filtered(self, tgt=None, mjd=(None, None), hduNums=(), vis2=True, t3phi=True, t3amp=True, visphi=True,
+                      visamp=True, verbose=False, **kwargs):
         """
-        Given an oifits file 'src' and filtering parameters on the target name (OI_TARGET table), the instrument name (OI_WAVELENGTH table), the array name (OI_ARRAY table), the observation wavelength (OI_WAVELENGTH table) and the acquisition time [t_min, t_max] (OI_VIS2, OI_VIS, OI_T3 tabkes), this function returns the data indices of the data matching all of these different filters.
-        These lists are used to load the data within an Oidata object.
+        Given an oifits file 'src' and filtering parameters on the target name (OI_TARGET table), the instrument name
+        (OI_WAVELENGTH table), the array name (OI_ARRAY table), the observation wavelength (OI_WAVELENGTH table) and the
+        acquisition time [t_min, t_max] (OI_VIS2, OI_VIS, OI_T3 tabkes), this function returns the data indices of the
+        data matching all of these different filters. These lists are used to load the data within an Oidata object.
 
         Leave input parameter to 'None' to discard filtering on that particular parameter.
 
-        Returns: VIS2, T3, VIS indeces as a tuple of 3 lists
+        Returns: VIS2, T3, VIS indices as a tuple of 3 lists
         """
         hdus = pf.open(self.src)
         mjd = [float(mjd[0] if mjd[0] is not None else -np.inf), float(mjd[1] if mjd[1] is not None else np.inf)]
-        datayouwant = {'data':{'VIS2':bool(vis2), 'T3PHI':bool(t3phi), 'T3AMP':bool(t3amp), 'VISPHI':bool(visphi), 'VISAMP':bool(visamp)}}
+        datayouwant = {'data': {'VIS2': bool(vis2), 'T3PHI': bool(t3phi), 'T3AMP': bool(t3amp), 'VISPHI': bool(visphi),
+                                'VISAMP': bool(visamp)}}
+        hduNums = core.aslist(hduNums)
         for idx, item in enumerate(hdus):
-            if core.aslist(hduNums) != [] and idx not in core.aslist(hduNums): continue
+            if len(hduNums) > 0 and idx not in hduNums:
+                    continue
             if core.hduToDataType(item) is not None:
-                MJD = core.gethduMJD(item)[1]
-                filt = ((MJD>=mjd[0]) & (MJD<=mjd[1]))
+                mjditem = core.gethduMJD(item)[1]
+                filt = ((mjditem>=mjd[0]) & (mjditem <= mjd[1]))
                 if tgt is not None:
                     filt = (filt & (item.data.field("TARGET_ID") == int(tgt)))
-                if verbose: print("{}:\n  {:d}/{}\n".format(core.hduToDataType(item), filt.sum(), item.data["TARGET_ID"].size))
+                if verbose:
+                    print("{}:\n  {:d}/{}\n".format(core.hduToDataType(item), filt.sum(), item.data["TARGET_ID"].size))
                 datayouwant[idx] = np.arange(item.data["TARGET_ID"].size)[filt]
         hdus.close()
         return datayouwant
 
-    def extract(self, tgt=None, mjd=[None, None], wl=[None, None], hduNums=[], vis2=True, t3phi=True, t3amp=True, visphi=True, visamp=True, flatten=False, degree=True, significant_figures=5, erb_sigma=None, sigma_erb=None, systematic_prior=None, systematic_bounds=None, verbose=False, **kwargs):
-        datayouwant = self.show_filtered(tgt=tgt, mjd=mjd, vis2=vis2, hduNums=hduNums, t3phi=t3phi, t3amp=t3amp, visphi=visphi, visamp=visamp, verbose=verbose, **kwargs)
-        return Oifits(src=self.src, datafilter=datayouwant, flatten=flatten, degree=degree, significant_figures=significant_figures, wl=wl, erb_sigma=erb_sigma, sigma_erb=sigma_erb, systematic_prior=systematic_prior, systematic_bounds=systematic_bounds, **kwargs)
+    def extract(self, tgt=None, mjd=(None, None), wl=(None, None), hduNums=(), vis2=True, t3phi=True, t3amp=True,
+                visphi=True, visamp=True, flatten=False, degree=True, significant_figures=5, erb_sigma=None,
+                sigma_erb=None, systematic_prior=None, systematic_bounds=None, verbose=False, **kwargs):
+        datayouwant = self.show_filtered(tgt=tgt, mjd=mjd, vis2=vis2, hduNums=hduNums, t3phi=t3phi, t3amp=t3amp,
+                                         visphi=visphi, visamp=visamp, verbose=verbose, **kwargs)
+        return Oifits(src=self.src, datafilter=datayouwant, flatten=flatten, degree=degree,
+                      significant_figures=significant_figures, wl=wl, erb_sigma=erb_sigma, sigma_erb=sigma_erb,
+                      systematic_prior=systematic_prior, systematic_bounds=systematic_bounds, **kwargs)
 
 
 class OidataEmpty(object):
@@ -171,14 +188,17 @@ class OidataEmpty(object):
         self.raiseError = bool(kwargs.pop('raiseError', True))
         self.datatype = str(datatype).upper()
         if self.datatype not in core.ATTRDATATYPE.keys():
-            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype): return
+            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype):
+                return
         self._has = False
         self._useit = False
 
     def _info(self):
-        return "%s data, None" % (self.datatype)
+        return "{} data, None".format(self.datatype)
+
     def __repr__(self):
         return self._info()
+
     def __str__(self):
         return self._info()
 
@@ -187,7 +207,7 @@ class OidataEmpty(object):
         """
         Turn this True or False whether you wan't the fitting to include this datatype
         """
-        return (self._useit and self._has)
+        return self._useit and self._has
     @useit.setter
     def useit(self, value):
         self._useit = bool(value)
@@ -201,7 +221,8 @@ class OidataEmpty(object):
 
 
 class Oidata(OidataEmpty):
-    def __init__(self, src, hduidx, datatype, hduwlidx, indices=[], wlindices=[], degree=True, flatten=False, significant_figures=5, **kwargs):
+    def __init__(self, src, hduidx, datatype, hduwlidx, indices=(), wlindices=(), degree=True, flatten=False,
+                 significant_figures=5, **kwargs):
         super(Oidata, self).__init__(datatype=datatype, **kwargs)
         self._input_src = [str(src)]
         self._input_hduidx = [int(hduidx)]
@@ -211,9 +232,12 @@ class Oidata(OidataEmpty):
         hduwl = hdus[self._input_hduwlidx[-1]]
 
         if self.datatype not in core.ATTRDATATYPE.keys():
-            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype): return
+            if exc.raiseIt(exc.InvalidDataType, self.raiseError, datatype=self.datatype):
+                return
         if core.DATAKEYSDATATYPE[self.datatype]['data'] not in core.hduToColNames(hdu):
-            if exc.raiseIt(exc.HduDatatypeMismatch, self.raiseError, hduhead=core.hduToDataType(hdu), datatype=self.datatype): return
+            if exc.raiseIt(exc.HduDatatypeMismatch, self.raiseError, hduhead=core.hduToDataType(hdu),
+                           datatype=self.datatype):
+                return
 
         self._input_degree = [bool(degree)]
         self._input_flatten = [bool(flatten)]
@@ -223,8 +247,8 @@ class Oidata(OidataEmpty):
         
         self._has = True
         self._useit = True
-        wlindices = slice(0, 10000000) if wlindices == [] else np.asarray(wlindices).ravel()
-        indices = slice(0, 10000000) if indices == [] else np.asarray(indices).ravel()
+        wlindices = slice(0, 10000000) if wlindices == () else np.asarray(wlindices).ravel()
+        indices = slice(0, 10000000) if indices == () else np.asarray(indices).ravel()
 
         # attributes to be copy-pasted
         for key, vl in core.ATTRDATATYPE[self.datatype].items():
@@ -238,7 +262,7 @@ class Oidata(OidataEmpty):
 
         # data attributes to be extracted out of OIFITS
         for key, vl in core.DATAKEYSDATATYPE[self.datatype].items():
-            setattr(self, '_'+key, hdu.data[vl][indices].reshape((self._datasize, -1))[:,wlindices])
+            setattr(self, '_'+key, hdu.data[vl][indices].reshape((self._datasize, -1))[:, wlindices])
         self.mask = np.logical_not(self._mask) # swaps Trues to Falses to have a good mask
 
         # data attributes to be extracted out of OIFITS and replicated with wl
@@ -254,8 +278,14 @@ class Oidata(OidataEmpty):
 
         # combine the UV coordinates of T3
         if self.is_t3:
-            self._u = np.concatenate((np.expand_dims(self._u1, -1), np.expand_dims(self._u2, -1), np.expand_dims(-self._u1-self._u2, -1)), axis=-1)
-            self._v = np.concatenate((np.expand_dims(self._v1, -1), np.expand_dims(self._v2, -1), np.expand_dims(-self._v1-self._v2, -1)), axis=-1)
+            self._u = np.concatenate((np.expand_dims(self._u1, -1),
+                                      np.expand_dims(self._u2, -1),
+                                      np.expand_dims(-self._u1-self._u2, -1)),
+                                     axis=-1)
+            self._v = np.concatenate((np.expand_dims(self._v1, -1),
+                                      np.expand_dims(self._v2, -1),
+                                      np.expand_dims(-self._v1-self._v2, -1)),
+                                     axis=-1)
             # delete temporary attributes
             for key in core.UVKEYSDATATYPE[self.datatype].keys():
                 delattr(self, "_"+key)
@@ -276,7 +306,10 @@ class Oidata(OidataEmpty):
             self.update()
 
     def _info(self):
-        return "%s data, shape: %s, wl: %s%s" % (self.datatype, core.maskedshape(self.shapedata, np.logical_not(self.mask).sum()), self._wlmin, (" to "+str(self._wlmax))*int(self._wlspan!=0))
+        return "{} data, shape: {}, wl: {}{}".format(self.datatype,
+                                                     core.maskedshape(self.shapedata, np.logical_not(self.mask).sum()),
+                                                     self._wlmin,
+                                                     " to %.2f".format(self._wlmax) if self._wlspan != 0 else "")
     
     @property
     def data(self):
@@ -303,7 +336,7 @@ class Oidata(OidataEmpty):
         return self._mask
     @mask.setter
     def mask(self, value):
-        if value is True or value is False or value is None: # removes the mask
+        if value is True or value is False or value is None:  # removes the mask
             self._use_mask = False
             self._mask = np.ones(self._data.shape, dtype=bool)
         else:
@@ -401,11 +434,14 @@ class Oidata(OidataEmpty):
         self._flat = True
 
     def _addData(self, data, flatten=True, **kwargs):
-        if not isinstance(data, OidataEmpty): return # trivial, nothing to add
+        if not isinstance(data, OidataEmpty):
+            return  # trivial, nothing to add
         if not isinstance(data, Oidata):
-            if exc.raiseIt(exc.WrongData, exc.doraise(self, **kwargs), typ='Oidata'): return False
+            if exc.raiseIt(exc.WrongData, exc.doraise(self, **kwargs), typ='Oidata'):
+                return False
         if self.datatype != data.datatype:
-            if exc.raiseIt(exc.IncompatibleData, exc.doraise(self, **kwargs), typ1=self.datatype, typ2=data.datatype): return False
+            if exc.raiseIt(exc.IncompatibleData, exc.doraise(self, **kwargs), typ1=self.datatype, typ2=data.datatype):
+                return False
         # do we flatten it?
         if flatten or self.shapedata[-1] != data.shapedata[-1]:
             self.flatten()
@@ -421,7 +457,8 @@ class Oidata(OidataEmpty):
 
     def update(self):
         """
-        Given u, v, wl and flag information as object properties, this function updates the Oidata object: the data masking (from the new mask property) and the bl, pa, blwl properties (from u, v and wl properties)
+        Given u, v, wl and flag information as object properties, this function updates the Oidata object: the data
+        masking (from the new mask property) and the bl, pa, blwl properties (from u, v and wl properties)
         """
         self._u = core.round_fig(self._u, self.significant_figures)
         self._v = core.round_fig(self._v, self.significant_figures)
@@ -443,7 +480,8 @@ class Oifits(object):
 
     vis2, vis and t3 are lists of which corresponding data indeces to extract from the file. 
     """
-    def __init__(self, src, datafilter, wl=[None, None], erb_sigma=None, sigma_erb=None, systematic_prior=None, systematic_bounds=None, flatten=False, degree=True, significant_figures=5, **kwargs):
+    def __init__(self, src, datafilter, wl=(None, None), erb_sigma=None, sigma_erb=None, systematic_prior=None,
+                 systematic_bounds=None, flatten=False, degree=True, significant_figures=5, **kwargs):
         self.raiseError = bool(kwargs.pop('raiseError', True))
         # initialize empty data
         for key in core.DATAKEYSLOWER:
@@ -451,15 +489,18 @@ class Oifits(object):
 
         self.erb_sigma = core.ident if erb_sigma is None else erb_sigma
         if not callable(self.erb_sigma):
-            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="erb_sigma"): return
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="erb_sigma"):
+                return
         self.sigma_erb = core.ident if sigma_erb is None else sigma_erb
         if not callable(self.sigma_erb):
-            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="sigma_erb"): return
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="sigma_erb"):
+                return
         self.systematic_bounds = None if systematic_bounds is None else list(map(float, list(systematic_bounds)[:2]))
         self.systematic_prior = None if systematic_prior is None else float(systematic_prior)
         self._systematic_prior = self.systematic_prior
         # init parameters
-        self.addData(src=str(src), datafilter=dict(datafilter), flatten=bool(flatten), degree=bool(degree), significant_figures=int(significant_figures), wl=list(wl)[:2], noupdate=True, **kwargs)
+        self.addData(src=str(src), datafilter=dict(datafilter), flatten=bool(flatten), degree=bool(degree),
+                     significant_figures=int(significant_figures), wl=list(wl)[:2], noupdate=True, **kwargs)
         self.update()
 
     def _info(self):
@@ -472,49 +513,63 @@ class Oifits(object):
     def __str__(self):
         return self._info()
 
-    def addData(self, src, datafilter={}, flatten=False, degree=True, significant_figures=5, wl=[None, None], **kwargs):
+    def addData(self, src, datafilter=None, flatten=False, degree=True, significant_figures=5, wl=(None, None),
+                **kwargs):
+        if datafilter is None:
+            datafilter = {}
         if isinstance(src, Oifits):
             thedata = src
             for datatype in core.DATAKEYSLOWER:
-                if not getattr(thedata, datatype): continue
+                if not getattr(thedata, datatype):
+                    continue
                 if getattr(self, datatype):
                     getattr(self, datatype)._addData(getattr(thedata, datatype), flatten=flatten, **kwargs)
                 else:
                     setattr(self, datatype, getattr(thedata, datatype))
         else:
-            whichdata = datafilter.get('data', {'data':{'VIS2':True, 'T3PHI':True, 'T3AMP':True, 'VISPHI':True, 'VISAMP':True}})
-            hdus = pf.open(src) # open
+            whichdata = datafilter.get('data', {'data': {'VIS2': True, 'T3PHI': True, 'T3AMP': True, 'VISPHI': True,
+                                                         'VISAMP': True}})
+            hdus = pf.open(src)  # open
             hduwlidx = core.hduWlindex(hdus)
             if not hduwlidx:
-                if exc.raiseIt(exc.NoWavelengthTable, self.raiseError, src=src): return
+                if exc.raiseIt(exc.NoWavelengthTable, self.raiseError, src=src):
+                    return
             # get wl sorted
             wl = [float(wl[0] if wl[0] is not None else -np.inf), float(wl[1] if wl[1] is not None else np.inf)]
             allwl = hdus[hduwlidx].data[core.KEYSWL['wl']]
-            wlindices = np.arange(allwl.size)[((allwl>=wl[0]) & (allwl<wl[1]))]
+            wlindices = np.arange(allwl.size)[((allwl >= wl[0]) & (allwl < wl[1]))]
             # for each datafilter
             for idx, indices in datafilter.items():
-                if not isinstance(idx, int) or np.size(indices)==0: continue
+                if not isinstance(idx, int) or np.size(indices) == 0:
+                    continue
                 # if real data
                 if core.hduToDataType(hdus[idx]) is not None:
                     for datatype in core.ALLDATAEXTNAMES[hdus[idx].header['EXTNAME']]:
-                        if not whichdata.get(datatype.upper(), True): continue
-                        thedata = Oidata(src=src, hduidx=idx, datatype=datatype, hduwlidx=hduwlidx, indices=indices, wlindices=wlindices, degree=degree, flatten=flatten, significant_figures=significant_figures, **kwargs)
+                        if not whichdata.get(datatype.upper(), True):
+                            continue
+                        thedata = Oidata(src=src, hduidx=idx, datatype=datatype, hduwlidx=hduwlidx, indices=indices,
+                                         wlindices=wlindices, degree=degree, flatten=flatten,
+                                         significant_figures=significant_figures, **kwargs)
                         if getattr(self, datatype.lower()):
                             getattr(self, datatype.lower())._addData(thedata, flatten=flatten, **kwargs)
                         else:
                             setattr(self, datatype.lower(), thedata)
                 else:
                     hdus.close()
-                    if exc.raiseIt(exc.NotADataHdu, self.raiseError, idx=idx, src=str(src)): return
+                    if exc.raiseIt(exc.NotADataHdu, self.raiseError, idx=idx, src=str(src)):
+                        return
             hdus.close()
-        if not kwargs.pop('noupdate', False): self.update()
+        if not kwargs.pop('noupdate', False):
+            self.update()
 
     def flatten(self):
         """
-        Flattens all data contained in the Oidata object. This can be useful in order to add several bits of data that do not have the same shapes
+        Flattens all data contained in the Oidata object. This can be useful in order to add several bits of data that
+        do not have the same shapes
         """
         for key in core.DATAKEYSLOWER:
-            if getattr(self, key): getattr(self, key).flatten()
+            if getattr(self, key):
+                getattr(self, key).flatten()
         self.update()
 
     def update(self):
@@ -522,7 +577,8 @@ class Oifits(object):
         Updates all data contained in the Oidata object
         """
         for key in core.DATAKEYSLOWER:
-            if getattr(self, key): getattr(self, key).update()
+            if getattr(self, key):
+                getattr(self, key).update()
 
         funkydtypeint = [('u', int), ('v', int), ('wl', int)]
         funkydtype = [('u', np.float32), ('v', np.float32), ('wl', np.float32)]
@@ -537,7 +593,7 @@ class Oifits(object):
                 dum['v'] = core.round_fig(x=thedata.v, n=thedata.significant_figures, retint=True)
                 dum['wl'] = core.round_fig(x=thedata.wl, n=thedata.significant_figures, retint=True)
                 # deal with symmetry
-                inv = (dum['u']<0)
+                inv = (dum['u'] < 0)
                 dum['u'][inv] *= -1
                 dum['v'][inv] *= -1
                 # stack
@@ -556,7 +612,7 @@ class Oifits(object):
                 dum['v'] = core.round_fig(x=thedata.v, n=thedata.significant_figures)
                 dum['wl'] = core.round_fig(x=thedata.wl, n=thedata.significant_figures)
                 # simplify symmetry
-                inv = (dum['u']<0)
+                inv = (dum['u'] < 0)
                 dum['u'][inv] *= -1
                 dum['v'][inv] *= -1
                 # save the phase symmetry
@@ -578,7 +634,8 @@ class Oifits(object):
                     dum[thedata._ind == v] = i
                 thedata._ind = dum.copy()
         # prepare pre-processed uniques
-        self.uvwl = {'u':unique_uvwl['u'], 'v':unique_uvwl['v'], 'wl':unique_uvwl['wl'], 'blwl':np.hypot(unique_uvwl['u'], unique_uvwl['v'])/unique_uvwl['wl']}
+        self.uvwl = {'u': unique_uvwl['u'], 'v': unique_uvwl['v'], 'wl': unique_uvwl['wl'],
+                     'blwl': np.hypot(unique_uvwl['u'], unique_uvwl['v'])/unique_uvwl['wl']}
         self._wlmin = self.uvwl['wl'].min()
         self._wlmax = self.uvwl['wl'].max()
         self._wlspan = self._wlmax - self._wlmin
@@ -595,7 +652,7 @@ class Oifits(object):
             randomizer = core.gen_generator()
             return randomizer.uniform(low=self.systematic_bounds[0], high=self.systematic_bounds[1])
         else:
-            exc.raiseIt(NoSystematicsFit, self.raiseError)
+            exc.raiseIt(exc.NoSystematicsFit, self.raiseError)
 
     def remorph(self, viscomp):
         ret = []
@@ -606,13 +663,13 @@ class Oifits(object):
                 if retdbl:
                     viscomp, flx = viscomp
                 if thedata.is_t3:
-                    if thedata.is_angle: # t3phi
+                    if thedata.is_angle:  # t3phi
                         dum = (core.FCTVISCOMP[key.upper()](viscomp)[thedata._ind]*thedata._phasesign).sum(-1)
-                    else: # t3amp
+                    else:  # t3amp
                         dum = (core.FCTVISCOMP[key.upper()](viscomp[thedata._ind])).prod(-1)
                 else:
                     dum = core.FCTVISCOMP[key.upper()](viscomp)[thedata._ind]
-                    if thedata.is_angle: # visphi
+                    if thedata.is_angle:  # visphi
                         dum *= thedata._phasesign
                 if retdbl:
                     ret.append((dum, flx[thedata._ind]))
@@ -622,10 +679,10 @@ class Oifits(object):
                 ret.append(None)
         return ret
 
-
     def save(self, filename, append=False, clobber=False):
         ext = '.oif.fits'
-        if filename.find(ext)==-1: filename += ext
+        if filename.find(ext) == -1:
+            filename += ext
         if append:
             hdulist = pf.open(filename, mode='append')
         else:
@@ -633,7 +690,7 @@ class Oifits(object):
         allmodes = ['vis2', 't3phi', 't3amp', 'visphi', 'visamp']
         for i in range(len(self._input_src)):
             for mode in allmodes:
-                if getattr(self,"_has"+mode):
+                if getattr(self, "_has"+mode):
                     hdu = pf.PrimaryHDU()
                     hdu.header.set('EXT', 'DATA', comment='Type of information in the HDU')
                     hdu.header.set('DATE', strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
@@ -641,7 +698,8 @@ class Oifits(object):
                     hdu.header.set('SRC', str(self._input_src[i]), comment='Path to the datafile')
                     hdu.header.set('DATATYPE', mode, comment='Type of data from datafile '+str(i))
                     hdu.header.set('FLATTEN', bool(self._input_flatten[i]), comment='Should the data be flatten')
-                    hdu.header.set('SIG_FIG', int(self.significant_figures), comment='Significant figures for u,v coordinates')
+                    hdu.header.set('SIG_FIG', int(self.significant_figures), comment='Significant figures for'
+                                                                                     'u,v coordinates')
                     if mode in ['visphi', 't3phi']:
                         hdu.header.set('DEGREES', bool(self._input_degrees[i]), comment='Is datafile in degrees')
                     hdu.data = np.ravel(getattr(self, "_input_"+mode)[i])
@@ -650,13 +708,14 @@ class Oifits(object):
                     hdu.header.add_comment('Written by Guillaume SCHWORER')
                     hdulist.append(hdu)
         for mode in allmodes:
-            if getattr(self,"_has"+mode):
+            if getattr(self, "_has"+mode):
                 hdu = pf.PrimaryHDU()
                 hdu.header.set('EXT', 'DATAMASK', comment='Type of information in the HDU')
                 hdu.header.set('DATE', strftime('%Y%m%dT%H%M%S'), comment='Creation Date')
                 hdu.header.set('DATATYPE', mode, comment='Type of data from datafile '+str(i))
                 hdu.data = getattr(self, mode).mask.astype(np.uint8)
-                hdu.header.add_comment('Data mask for the given datatype for all data contained in the different files.')
+                hdu.header.add_comment('Data mask for the given datatype for all data contained in the different'
+                                       'files.')
                 hdu.header.add_comment('Written by Guillaume SCHWORER')
                 hdulist.append(hdu)
 
