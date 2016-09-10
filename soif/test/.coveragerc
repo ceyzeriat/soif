@@ -5,6 +5,11 @@ omit =
    */*/test/*
    */*/*/test/*
    */*version*
+   */__init__.py
+   */*/__init__.py
+   */core.py
+   */oiload.py
+   */oipriors.py
 
 [report]
 exclude_lines =
