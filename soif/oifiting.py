@@ -48,7 +48,7 @@ class Oifiting(MCres):
     def __init__(self, model, nwalkers=100, niters=500, burnInIts=100, threads=1, customlike=None, **kwargs):
         self.raiseError = bool(kwargs.pop('raiseError', True))
         if not model._hasdata:
-            if exc.raiseIt(exc.NoDataModel, self.raiseError, src=src):
+            if exc.raiseIt(exc.NoDataModel, self.raiseError):
                 return
         if 'sampler' in kwargs.keys():
             self._init(sampler=kwargs.pop('sampler'), paramstr=self.model.paramstr, nwalkers=self.nwalkers,
@@ -81,7 +81,7 @@ class Oifiting(MCres):
             if exc.raiseIt(exc.NoEMCEE, self.raiseError):
                 return
         if self.model.nparams == 0:
-            if exc.raiseIt(exc.AllParamsSet, self.raiseError, src=src):
+            if exc.raiseIt(exc.AllParamsSet, self.raiseError):
                 return
         self.niters = getattr(self, "niters", 0) + int(niters)
 

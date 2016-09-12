@@ -2,23 +2,23 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  
+#
 #  SOIF - Sofware for Optical Interferometry fitting
 #  Copyright (C) 2016  Guillaume Schworer
-#  
+#
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#  
+#
 #  For any information, bug report, idea, donation, hug, beer, please contact
 #    guillaume.schworer@obspm.fr
 #
@@ -54,7 +54,8 @@ class Oimodel(object):
         else:
             self.oidata = None
         if tweakparams is not None and not callable(tweakparams):
-            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="tweakparams"): return False
+            if exc.raiseIt(exc.NotCallable, self.raiseError, fct="tweakparams"):
+                return False
         self._tweakparams = tweakparams
         self.nobj = 0
         self._nparamsObj = 0
@@ -65,26 +66,31 @@ class Oimodel(object):
                 self.add_obj(item)
 
     def _info(self):
-        txt = core.font.blue+"<SOIF Model>%s\n %s objects:\n  %s" % (core.font.normal, self.nobj, "\n  ".join(map(str, self._objs)))
+        txt = core.font.blue+"<SOIF Model>{}\n {} objects:\n  {}".format(
+                            core.font.normal,
+                            self.nobj,
+                            "\n  ".join(map(str, self._objs)))
         if self._hasdata:
-            return "%s\n%s" % (txt, str(self.oidata))
+            return "{}\n{}".format(txt, str(self.oidata))
         else:
             return txt
+
     def __repr__(self):
         return self._info()
-    def __str__(self):
-        return self._info()
+
+    __str__ = __repr__
 
     @property
     def _hasdata(self):
         return self.oidata is not None
-    
+
     @property
     def nparams(self):
         if self._hasdata:
             return self._nparamsObj + int(self.oidata.systematic_fit)
         else:
             return self._nparamsObj
+
     @nparams.setter
     def nparams(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="nparams")
@@ -92,12 +98,13 @@ class Oimodel(object):
     @property
     def nparamsObjs(self):
         self._nparamsObj = 0
-        for item in self._objs: self._nparamsObj += item._nparams
+        for item in self._objs:
+            self._nparamsObj += item._nparams
         return self._nparamsObj
+
     @nparamsObjs.setter
     def nparamsObjs(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="nparamsObjs")
-    
 
     def add_obj(self, typ, name=None, params={}, prior={}):
         """
@@ -124,12 +131,13 @@ class Oimodel(object):
         if hasattr(self._objs[-1], 'prepare') and self._hasdata:
             self._objs[-1].prepare(oidata=self.oidata)
         self.nobj += 1
-        dum = self.nparamsObjs
-    
+        # dum = self.nparamsObjs
+
     def del_obj(self, idobj):
         """
         Delete an object from the model.
-        idobj can be the name of the object or its index in the model list 
+        idobj can be the name of the object or its index in the model
+        list.
         """
         if not isinstance(idobj, int):
             name = core.clean_name(idobj)
@@ -140,7 +148,7 @@ class Oimodel(object):
         else:
             ind = idobj
             name = self._objs[ind].name
-        dummy = self._objs.pop(ind)
+        self._objs.pop(ind)
         delattr(self, "o_"+name)
         print("{}Deleted object '{}'{}.".format(core.font.blue, name, core.font.normal))
         self.nobj -= 1

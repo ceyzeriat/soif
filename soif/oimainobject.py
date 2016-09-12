@@ -2,40 +2,40 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  
+#
 #  SOIF - Sofware for Optical Interferometry fitting
 #  Copyright (C) 2016  Guillaume Schworer
-#  
+#
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#  
+#
 #  For any information, bug report, idea, donation, hug, beer, please contact
 #    guillaume.schworer@obspm.fr
 #
 ###############################################################################
 
+from time import strftime
+from time import time
+
+try:
+    import astropy.io.fits as pf
+except ImportError:
+    import pyfits as pf
 
 from . import oipriors
 from . import oiexception as exc
 from . import core
 np = core.np
-
-from time import strftime
-from time import time
-try:
-    import astropy.io.fits as pf
-except ImportError:
-    import pyfits as pf
 
 
 __all__ = ['Oimainobject']
@@ -54,12 +54,18 @@ class Oimainobject(object):
         self._vmask = np.zeros(self._nkeys, dtype=bool)
         for item in bounds.keys():
             if item not in self._keys:
-                print("{}WARNING{}: Ignoring unknown bounds '{}' for object '{}'."
-                    .format(core.font.orange, core.font.normal, item, name))
+                print("{}WARNING{}: Ignoring unknown bounds '{}' for object '{}'.".format(
+                                core.font.orange,
+                                core.font.normal,
+                                item,
+                                name))
         for item in priors.keys():
             if item not in self._keys:
-                print("{}WARNING{}: Ignoring unknown prior '{}' for object '{}'."
-                    .format(core.font.orange, core.font.normal, item, name))
+                print("{}WARNING{}: Ignoring unknown prior '{}' for object '{}'.".format(
+                                core.font.orange,
+                                core.font.normal,
+                                item,
+                                name))
         for i, item in enumerate(self._keys):
             found = False
             if item in priors.keys():
@@ -75,7 +81,7 @@ class Oimainobject(object):
                 # set basic parameters
                 setattr(self, item+"_bounds", list(map(float, vals[:2])))
                 prior_range = np.abs(getattr(self, item+"_bounds")[1]-getattr(self, item+"_bounds")[0])*1.
-                allkwargs = {'prior_bounds': getattr(self, item+"_bounds"), 'prior_range': prior_range, 'prior_invrange': 1./prior_range, 'prior_lninvrange':-np.log(prior_range)}
+                allkwargs = {'prior_bounds': getattr(self, item+"_bounds"), 'prior_range': prior_range, 'prior_invrange': 1./prior_range, 'prior_lninvrange': -np.log(prior_range)}
                 if len(vals)>=4:
                     if not isinstance(vals[3], dict):
                         raise Exception("For object '{}', the fourth argument '{}' in prior definition must be a dictionary.".format(item, vals[3]))

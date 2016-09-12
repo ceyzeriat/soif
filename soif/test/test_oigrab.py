@@ -29,7 +29,10 @@ import numpy as np
 import os
 from nose.tools import raises
 
-from ..oidata import Oigrab, Oidata, OidataEmpty, Oifits
+from ..oidata import Oidata
+from ..oidataempty import OidataEmpty
+from ..oifits import Oifits
+from ..oidata import Oigrab
 from .. import oiexception as exc
 
 FILENAME = os.path.dirname(os.path.abspath(__file__)) + '/MWC361.oifits'
@@ -38,7 +41,7 @@ FILENAME_NOWL = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_nowl.oifit
 VALIDHDU = 4
 DATASETSIZE = 12
 
-def test_oigrab():
+def test():
     oig = Oigrab(FILENAME)
     assert len(oig.targets) == 3
     assert oig.targets[0] == 'HD_204770'
@@ -46,19 +49,19 @@ def test_oigrab():
     assert 
 
 @raises(exc.NoTargetTable)
-def test_oigrab_NoTargetTable():
+def test_NoTargetTable():
     oig = Oigrab(FILENAME_NOTARGET)
 
 @raises(exc.NoTargetTable)
-def test_oigrab_NoTargetTable():
+def test_NoTargetTable():
     oig = Oigrab(FILENAME_NOWL)
 
 @raises(exc.ReadOnly)
-def test_oigrab_NoTargetTable():
+def test_NoTargetTable():
     oig = Oigrab(FILENAME)
     oig.targets = []
 
-def test_oigrab_show_specs():
+def test_show_specs():
     oig = Oigrab(FILENAME)
     ans = oig.show_specs(ret=True)
     for item in range(10):
@@ -70,11 +73,11 @@ def test_oigrab_show_specs():
     assert (np.diff([item[2] for item in ans[VALIDHDU]]) >= 0).all()
     ans = oig.show_specs(ret=False)
 
-def test_oigrab_show_filtered():
+def test_show_filtered():
     oig = Oigrab(FILENAME)
     ans = oig.show_specs(ret=True)
 
-def test_oigrab_extract(tgt=1):
+def test_extract(tgt=1):
     oig = Oigrab(FILENAME)
     ans1 = oig.extract(tgt=tgt)
     filt = np.asarray([item[1] for item in oig.show_specs(ret=True)[VALIDHDU]]) == tgt
