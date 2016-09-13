@@ -72,6 +72,14 @@ class Oigrab(object):
         self._targets = {}
         for ind, tgt in zip(hdutgt.data["TARGET_ID"], hdutgt.data["TARGET"]):
             self._targets[ind] = tgt
+        if not core.hduWlindex(hdus):
+            if exc.raiseIt(exc.NoWavelengthTable,
+                           self.raiseError,
+                           src=self.src):
+                return
+        # allwl = hdus[self._hduwlidx].data[core.KEYSWL['wl']]
+        # self._wlmin = allwl.min()
+        # self._wlmax = allwl.max()
         hdus.close()
 
     def _info(self):
@@ -126,30 +134,33 @@ class Oigrab(object):
             for ind, tgt in self.targets.items():
                 print("{}: {}".format(ind, tgt))
         tgtlist = {}
-        formattitle = "\n{} [hdu={}]:\nAcq. Index | Target ID |      \
-                        MJD      |  UVs | N wl\n{}"
-        formatline = "{:>10} | {:>9} | {:>13} | {:>4} | {:>4}"
+        # formattitle = u"\n{} [hdu={:d}]: ({}{} µm)\n{}\n{}"
+        formattitle = u"\n{} [hdu={:d}]:\n{}\n{}"
+        formathead = u"{:^10} | {:^9} | {:^13} | {:^4} | {:^4}"
+        formatline = u"{:>10} | {:>9} | {:>13} | {:>4} | {:>4}"
         for idx, item in enumerate(hdus):
             # if we have data in this header
             if core.hduToDataType(item) is not None:
-                targetindexnumber, MJD, (ndata, nset, nunique, nholes, nwl) = \
+                targetsortmjd, MJD, (ndata, nset, nunique, nholes, nwl) = \
                     core.gethduMJD(item, withdet=True)
                 tgtlist[idx] = []
                 if not ret:
                     print(formattitle.format(
-                            core.hduToDataType(item), idx, "-"*52))
-                shapedtargetnums = targetindexnumber\
-                    .reshape((-1, nunique))[:, 0].astype(int)
-                shapedMJD = MJD[targetindexnumber.astype(int)]\
-                    .reshape((-1, nunique))[:, 0]
-                for tgtidx, sMJD in zip(shapedtargetnums, shapedMJD):
+                        core.hduToDataType(item),
+                        idx,
+                        # "{:.3f}".format(self._wlmin*1e6),
+                        # "" if self._wlmax == self._wlmin \
+                        #    else "-{:.3f}".format(self._wlmax*1e6),
+                        formathead.format('Acq. Index', 'Target ID', 'MJD',
+                                          'UVs', 'N wl'),
+                        '-'*52))
+                for tgtidx, sMJD in zip(targetsortmjd, MJD[targetsortmjd, 0]):
                     tgtfilter = slice(tgtidx*nunique, (tgtidx+1)*nunique)
                     tgtid = item.data['TARGET_ID'][tgtfilter]
+                    info = (tgtidx, tgtid[0], sMJD, tgtid.size, nwl)
                     if not ret:
-                        print(formatline.format(tgtidx, tgtid[0], sMJD,
-                                                tgtid.size, nwl))
-                    tgtlist[idx].append((tgtidx, tgtid[0], sMJD,
-                                         tgtid.size, nwl))
+                        print(formatline.format(*info))
+                    tgtlist[idx].append(info)
         hdus.close()
         if ret:
             return tgtlist
@@ -187,7 +198,7 @@ class Oigrab(object):
             if len(hduNums) > 0 and idx not in hduNums:
                     continue
             if core.hduToDataType(item) is not None:
-                mjditem = core.gethduMJD(item)[1]
+                mjditem = core.gethduMJD(item)[1].ravel()
                 filt = ((mjditem >= mjd[0]) & (mjditem <= mjd[1]))
                 if tgt is not None:
                     filt = (filt & (item.data.field("TARGET_ID") == int(tgt)))
@@ -205,11 +216,10 @@ class Oigrab(object):
                 flatten=False, degree=True, significant_figures=5,
                 erb_sigma=None, sigma_erb=None, systematic_prior=None,
                 systematic_bounds=None, verbose=False, **kwargs):
-        datayouwant = self.show_filtered(tgt=tgt, mjd=mjd, vis2=vis2,
-                                         hduNums=hduNums, t3phi=t3phi,
-                                         t3amp=t3amp, visphi=visphi,
-                                         visamp=visamp, verbose=verbose,
-                                         **kwargs)
+        datayouwant = self.show_filtered(
+                        tgt=tgt, mjd=mjd, vis2=vis2, hduNums=hduNums,
+                        t3phi=t3phi, t3amp=t3amp, visphi=visphi, visamp=visamp,
+                        verbose=verbose, **kwargs)
         return Oifits(src=self.src, datafilter=datayouwant, flatten=flatten,
                       degree=degree, significant_figures=significant_figures,
                       wl=wl, erb_sigma=erb_sigma, sigma_erb=sigma_erb,

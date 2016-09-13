@@ -509,7 +509,8 @@ def calcImgVis(img, masperpx, u, v, wl):
 
 def getDetails(hdu):
     """
-    give hdu, returns (ndata, nset, nunique, nholes, nwl)
+    Give a hdu
+    Returns (ndata, nset, nunique, nholes, nwl)
     """
     allstation = hdu.data['STA_INDEX']
     ndata = allstation.shape[0]
@@ -529,6 +530,31 @@ def getDetails(hdu):
     return ndata, nset, nunique, nholes, nwl
 
 
+def gethduMJD(hdu, withdet=False):
+    """
+    Returns, taken from the hdu, the unsorted mjd (MJD) and target
+    sorted-index related to the MJD (targetsortmjd), such that
+    MJD[targetsortmjd] gives sorted MJD values.
+    In case several datasets have the same mjd value, this function
+    uses the intefration time to infer mjd values which vary from
+    dataset to dataset.
+    Output shape = (nset, nunique) for MJD; (nset) for targetsortmjd
+    """
+    ndata, nset, nunique, nholes, nwl = getDetails(hdu)
+    mjd = hdu.data['MJD'].reshape((nset, nunique))
+    # the mjd information is sometimes the same = bullshit
+    if np.allclose(mjd.std(axis=0), 0):
+        # "fake" fix it using integration time
+        delta = (hdu.data['INT_TIME'][np.arange(0, ndata, nunique)]*nunique)
+        mjd += replicate(np.clip(delta, 30., 1e9).cumsum()/SECPERDAY,
+                              (-1, nunique))
+    sortmjd = np.argsort(mjd[:,0])
+    if withdet:
+        return sortmjd, mjd, (ndata, nset, nunique, nholes, nwl)
+    else:
+        return sortmjd, mjd
+
+
 def unique(ar, precision, return_index=False, return_inverse=False,
            return_counts=False):
     """
@@ -540,26 +566,6 @@ def unique(ar, precision, return_index=False, return_inverse=False,
                      return_index=return_index,
                      return_inverse=return_inverse,
                      return_counts=return_counts)
-
-
-def gethduMJD(hdu, withdet=False):
-    """
-    Returns the sorted mjd values taken from the hdu.
-    In case several datasets have the same mjd value, this function
-    uses the intefration time to infer mjd values which vary from
-    dataset to dataset
-    """
-    ndata, nset, nunique, nholes, nwl = getDetails(hdu)
-    mjd = hdu.data['MJD']
-    if mjd.std() == 0:
-        delta = (hdu.data['INT_TIME'][np.arange(0, ndata, nunique)]*nunique)
-        mjd += np.clip(delta, 30., 1e99).cumsum().repeat(nunique)/SECPERDAY
-    sortmjd = np.argsort(mjd).astype(int)
-    sortmjd = np.arange(nset).repeat(nunique)[sortmjd]
-    if withdet:
-        return sortmjd, mjd, (ndata, nset, nunique, nholes, nwl)
-    else:
-        return sortmjd, mjd
 
 
 def maskedshape(masked_shape, size_unmasked):

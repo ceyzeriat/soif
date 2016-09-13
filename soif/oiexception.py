@@ -34,7 +34,7 @@ def raiseIt(exc, raiseoupas, *args, **kwargs):
     if raiseoupas:
         raise exc
     else:
-        print("\033[31m"+exc.message+"\033[39m")
+        print("\033[31m{}\033[39m".format(exc.message))
         return True
     return False
 
@@ -59,8 +59,7 @@ class NoTargetTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoTargetTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_TARGET table in the \
-                        oifits file '{}'! Oups".format(src)
+        self.message = "There's no OI_TARGET table in the oifits file '{}'! Oups".format(src)
 
 
 class NoWavelengthTable(OIException):
@@ -69,8 +68,7 @@ class NoWavelengthTable(OIException):
     """
     def __init__(self, src="", *args, **kwargs):
         super(NoWavelengthTable, self).__init__(src, *args, **kwargs)
-        self.message = "There's no OI_WAVELENGTH table in the oifits file \
-                        '{}'! Haha, you're screwed!".format(src)
+        self.message = "There's no OI_WAVELENGTH table in the oifits file '{}'! Haha, you're screwed!".format(src)
 
 
 class ReadOnly(OIException):
@@ -79,8 +77,7 @@ class ReadOnly(OIException):
     """
     def __init__(self, attr, *args, **kwargs):
         super(ReadOnly, self).__init__(attr, *args, **kwargs)
-        self.message = "Attribute '{}' is read-only. What did you \
-                        think?".format(attr)
+        self.message = "Attribute '{}' is read-only. What did you think?".format(attr)
 
 
 class InvalidDataType(OIException):
@@ -89,8 +86,7 @@ class InvalidDataType(OIException):
     """
     def __init__(self, datatype, *args, **kwargs):
         super(InvalidDataType, self).__init__(datatype, *args, **kwargs)
-        self.message = "Surprise! Data type '{}' does not \
-                        exist".format(datatype)
+        self.message = "Surprise! Data type '{}' does not exist".format(datatype)
 
 
 class HduDatatypeMismatch(OIException):
@@ -100,8 +96,7 @@ class HduDatatypeMismatch(OIException):
     def __init__(self, hduhead, datatype, *args, **kwargs):
         super(HduDatatypeMismatch, self).__init__(hduhead, datatype,
                                                   *args, **kwargs)
-        self.message = "Data type '{}' and hdu with '{}' data do not match. \
-                        Don't mix peas with poos".format(datatype, hduhead)
+        self.message = "Data type '{}' and hdu with '{}' data do not match. Don't mix peas with poos".format(datatype, hduhead)
 
 
 class BadMaskShape(OIException):
@@ -110,8 +105,7 @@ class BadMaskShape(OIException):
     """
     def __init__(self, shape, *args, **kwargs):
         super(BadMaskShape, self).__init__(shape, *args, **kwargs)
-        self.message = "Bad mask shape; it should be '{}'. Nudge it and try \
-                        again".format(shape)
+        self.message = "Bad mask shape; it should be '{}'. Nudge it and try again".format(shape)
 
 
 class WrongData(OIException):
@@ -120,8 +114,7 @@ class WrongData(OIException):
     """
     def __init__(self, typ, *args, **kwargs):
         super(WrongData, self).__init__(typ, *args, **kwargs)
-        self.message = "Wrong data given, should be '{}'. Already told you, \
-                        don't mix apples and camembert".format(typ)
+        self.message = "Wrong data given, should be '{}'. Already told you, don't mix apples and camembert".format(typ)
 
 
 class IncompatibleData(OIException):
@@ -130,8 +123,7 @@ class IncompatibleData(OIException):
     """
     def __init__(self, typ1, typ2, *args, **kwargs):
         super(IncompatibleData, self).__init__(typ1, typ2, *args, **kwargs)
-        self.message = "Can't merge '{}' and '{}'. You looked very optimistic \
-                        until now".format(typ1, typ2)
+        self.message = "Can't merge '{}' and '{}'. You looked very optimistic until now".format(typ1, typ2)
 
 
 class NotADataHdu(OIException):
@@ -140,8 +132,7 @@ class NotADataHdu(OIException):
     """
     def __init__(self, idx, src, *args, **kwargs):
         super(NotADataHdu, self).__init__(idx, src, *args, **kwargs)
-        self.message = "Hdu index '{}' in file '{}' does not contain data. \
-                        Yep. Too bad".format(idx, src)
+        self.message = "Hdu index '{}' in file '{}' does not contain data. Yep. Too bad".format(idx, src)
 
 
 class NoSystematicsFit(OIException):
@@ -159,8 +150,7 @@ class NotCallable(OIException):
     """
     def __init__(self, fct, *args, **kwargs):
         super(NotCallable, self).__init__(fct, *args, **kwargs)
-        self.message = "'{}' should be callable. Get up and go \
-                        get it".format(fct)
+        self.message = "'{}' should be callable. Get up and go get it".format(fct)
 
 
 class NoEMCEE(OIException):
@@ -178,8 +168,7 @@ class AllParamsSet(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(AllParamsSet, self).__init__(*args, **kwargs)
-        self.message = "All parameters are set, there is no reason for \
-                        MCMC. That, was a successful simulation!"
+        self.message = "All parameters are set, there is no reason for MCMC. That, was a successful simulation!"
 
 
 class InvalidBound(OIException):
@@ -188,8 +177,7 @@ class InvalidBound(OIException):
     """
     def __init__(self, name, param, vv, *args, **kwargs):
         super(InvalidBound, self).__init__(name, param, vv, *args, **kwargs)
-        self.message = "Object '{}', parameter '{}' has \
-                        invalid bounds: {}.".format(name, param, vv)
+        self.message = "Object '{}', parameter '{}' has invalid bounds: {}.".format(name, param, vv)
 
 
 class NotFoundName(OIException):
@@ -234,8 +222,7 @@ class MasperpxMismatch(OIException):
     """
     def __init__(self, mpp1, mpp2, *args, **kwargs):
         super(MasperpxMismatch, self).__init__(mpp1, mpp2, *args, **kwargs)
-        self.message = "Cannot rescale image, masperpx \
-                        mismatch '{:.3f}' and '{:.3f}'".format(mpp1, mpp2)
+        self.message = "Cannot rescale image, masperpx mismatch '{:.3f}' and '{:.3f}'".format(mpp1, mpp2)
 
 
 class NoDataModel(OIException):
@@ -245,8 +232,7 @@ class NoDataModel(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(NoDataModel, self).__init__(*args, **kwargs)
-        self.message = "There is no data in this model. You cannot do that \
-                        you unless specifically authorized"
+        self.message = "There is no data in this model. You cannot do that you unless specifically authorized"
 
 
 class ZeroErrorbars(OIException):
@@ -255,5 +241,4 @@ class ZeroErrorbars(OIException):
     """
     def __init__(self, *args, **kwargs):
         super(ZeroErrorbars, self).__init__(*args, **kwargs)
-        self.message = "Some data-errors are 0. That's gonna be an issue \
-                        very soon"
+        self.message = "Some data-errors are 0. That's gonna be an issue very soon"

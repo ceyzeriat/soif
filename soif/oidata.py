@@ -93,8 +93,7 @@ class Oidata(OidataEmpty):
             setattr(self,
                     '_'+key,
                     hdu.data[vl][indices]
-                    .reshape((self._datasize, -1))[:, wlindices]
-                    )
+                    .reshape((self._datasize, -1))[:, wlindices])
         # swaps Trues to Falses to have a good mask
         self.mask = np.logical_not(self._mask)
 
@@ -103,8 +102,7 @@ class Oidata(OidataEmpty):
             setattr(self,
                     '_'+key,
                     core.replicate(hdu.data[vl][indices].ravel(),
-                                   (None, self._wlsize))
-                    )
+                                   (None, self._wlsize)))
 
         # done with the file
         hdus.close()
