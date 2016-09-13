@@ -32,12 +32,12 @@ from nose.tools import raises
 from ..oidata import Oidata
 from ..oidataempty import OidataEmpty
 from ..oifits import Oifits
-from ..oidata import Oigrab
+from ..oigrab import Oigrab
 from .. import oiexception as exc
 
-FILENAME = os.path.dirname(os.path.abspath(__file__)) + '/MWC361.oifits'
-FILENAME_NOTARGET = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_notarget.oifits'
-FILENAME_NOWL = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_nowl.oifits'
+FILENAME = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MWC361.oifits')
+FILENAME_NOTARGET = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MWC361_notarget.oifits')
+FILENAME_NOWL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MWC361_nowl.oifits')
 VALIDHDU = 4
 DATASETSIZE = 12
 
@@ -46,7 +46,6 @@ def test():
     assert len(oig.targets) == 3
     assert oig.targets[0] == 'HD_204770'
     assert str(oig) == repr(oig)
-    assert 
 
 @raises(exc.NoTargetTable)
 def test_NoTargetTable():
@@ -81,5 +80,5 @@ def test_extract(tgt=1):
     oig = Oigrab(FILENAME)
     ans1 = oig.extract(tgt=tgt)
     filt = np.asarray([item[1] for item in oig.show_specs(ret=True)[VALIDHDU]]) == tgt
-    ans2 = Oifits(oig.src, {VALIDHDU: np.arange()[filt]}])
+    ans2 = Oifits(oig.src, datafilter={VALIDHDU: np.arange(DATASETSIZE)[filt]+1})
     assert np.allclose(ans1.vis2.data, ans2.vis2.data)

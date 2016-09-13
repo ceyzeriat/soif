@@ -110,7 +110,7 @@ class BadMaskShape(OIException):
     """
     def __init__(self, shape, *args, **kwargs):
         super(BadMaskShape, self).__init__(shape, *args, **kwargs)
-        self.message = "Bad mask shape. Should be '{}'. Nudge it and try \
+        self.message = "Bad mask shape; it should be '{}'. Nudge it and try \
                         again".format(shape)
 
 
@@ -247,3 +247,13 @@ class NoDataModel(OIException):
         super(NoDataModel, self).__init__(*args, **kwargs)
         self.message = "There is no data in this model. You cannot do that \
                         you unless specifically authorized"
+
+
+class ZeroErrorbars(OIException):
+    """
+    If there is some data errors are zero
+    """
+    def __init__(self, *args, **kwargs):
+        super(ZeroErrorbars, self).__init__(*args, **kwargs)
+        self.message = "Some data-errors are 0. That's gonna be an issue \
+                        very soon"

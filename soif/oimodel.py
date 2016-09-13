@@ -27,7 +27,7 @@
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec as _matplotlibGridspecGridSpec
-from matplotlib.patches import FancyArrowPatch as _matplotlibPatchesFancyArrowPatch
+from matplotlib.patches import FancyArrowPatch as _matPatFancyArrowPatch
 from copy import deepcopy
 from time import strftime
 try:
@@ -39,7 +39,7 @@ from .oiunitmodels import *
 from .oimainobject import Oimainobject
 from . import oiexception as exc
 from . import core
-from .oidata import Oifits
+from .oifits import Oifits
 np = core.np
 
 __all__ = ['Oimodel']
@@ -239,7 +239,7 @@ class Oimodel(object):
                 if exc.raiseIt(exc.NoDataModel, self.raiseError):
                     return
             else:
-                return self._compVis(u=u, v=v, wl=wl, params=params)            
+                return self._compVis(u=u, v=v, wl=wl, params=params)
 
 
     def calcuvimage(self, blmax, wl, params=None, nbpts=101):
@@ -404,8 +404,8 @@ class Oimodel(object):
             theax = thefig.add_subplot(grid[0:4,0:20])
             theotherax = thefig.add_subplot(grid[4,0:20], sharex=theax)
             for k, v in np.ndenumerate(data):
-                theax.add_patch(_matplotlibPatchesFancyArrowPatch((model[k], data[k]),(model[k], data[k]+error[k]), arrowstyle='-['))
-                theax.add_patch(_matplotlibPatchesFancyArrowPatch((model[k], data[k]),(model[k], data[k]-error[k]), arrowstyle='-['))
+                theax.add_patch(_matPatFancyArrowPatch((model[k], data[k]),(model[k], data[k]+error[k]), arrowstyle='-['))
+                theax.add_patch(_matPatFancyArrowPatch((model[k], data[k]),(model[k], data[k]-error[k]), arrowstyle='-['))
             mini = min(data.min(), model.min())
             maxi = max(data.max(), model.max())
             theax.plot([mini, maxi], [mini, maxi], 'g-', lw=2)
@@ -562,7 +562,7 @@ def standardLikelihood(params, model, customlike=None, kwargs={}):
             quality += ((model.oidata.t3amp.data - t3amp)**2*invvar).sum()
         else:
             quality += ((model.oidata.t3amp.data - t3amp)**2*invvar - np.log(invvar)).sum()
-    
+
     ### !!! hard-coded shit to fit black-body stuff
     #khi_temp = (core.ratio_bb_flux(1.65*1e-6, params[0], params[4], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560
     khi_temp = (core.ratio_bb_flux(1.65*1e-6, np.random.normal(model._objs[0].temp, 2000), params[3], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560

@@ -32,6 +32,7 @@ except ImportError:
 
 from . import oiexception as exc
 from .oidataempty import OidataEmpty
+from .oidata import Oidata
 from . import core
 np = core.np
 

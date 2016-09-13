@@ -111,7 +111,10 @@ class Oidata(OidataEmpty):
 
         # add the data dimension on wl-like attributes
         for key in core.KEYSWL.keys():
-            setattr(self, "_"+key, core.replicate(getattr(self, "_"+key), (self._datasize, None)))
+            setattr(self,
+                    "_"+key,
+                    core.replicate(getattr(self, "_"+key),
+                                   (self._datasize, None)))
 
         # combine the UV coordinates of T3
         if self.is_t3:
@@ -128,7 +131,9 @@ class Oidata(OidataEmpty):
                 delattr(self, "_"+key)
             # add the data dimension on wl-like attributes
             for key in core.KEYSWL.keys():
-                setattr(self, "_"+key, core.replicate(getattr(self, "_"+key), (None, 3)))
+                setattr(self,
+                        "_"+key,
+                        core.replicate(getattr(self, "_"+key), (None, 3)))
 
         # convert to radian if needed
         if self.is_angle and degree:
@@ -143,10 +148,12 @@ class Oidata(OidataEmpty):
             self.update()
 
     def _info(self):
-        return "{} data, shape: {}, wl: {}{}".format(self.datatype,
-                                                     core.maskedshape(self.shapedata, np.logical_not(self.mask).sum()),
-                                                     self._wlmin,
-                                                     " to {:.2f}".format(self._wlmax) if self._wlspan != 0 else "")
+        return "{} data, shape: {}, wl: {}{}".format(
+            self.datatype,
+            core.maskedshape(self.shapedata,
+                             np.logical_not(self.mask).sum()),
+            self._wlmin,
+            " to {:.2f}".format(self._wlmax) if self._wlspan != 0 else "")
 
     @property
     def data(self):
@@ -154,6 +161,7 @@ class Oidata(OidataEmpty):
             return self._data[self.mask]
         else:
             return self._data
+
     @data.setter
     def data(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="data")
@@ -164,6 +172,7 @@ class Oidata(OidataEmpty):
             return self._error[self.mask]
         else:
             return self._error
+
     @error.setter
     def error(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="error")
@@ -171,15 +180,22 @@ class Oidata(OidataEmpty):
     @property
     def mask(self):
         return self._mask
+
     @mask.setter
     def mask(self, value):
-        if value is True or value is False or value is None:  # removes the mask
+        if value is True or value is None:  # removes the mask
             self._use_mask = False
             self._mask = np.ones(self._data.shape, dtype=bool)
-        else:
+        elif value is False:  # set up full masking
+            self._use_mask = True
+            self._mask = np.zeros(self._data.shape, dtype=bool)
+        else:  # convert value to proper bool mask
             value = np.asarray(value, dtype=bool)
             if value.shape != self._data.shape:
-                if exc.raiseIt(exc.BadMaskShape, self.raiseError, shape=str(self._data.shape)): return False
+                if exc.raiseIt(exc.BadMaskShape,
+                               self.raiseError,
+                               shape=self._data.shape):
+                    return False
             self._use_mask = not value.all()
             self._mask = value
 
@@ -189,6 +205,7 @@ class Oidata(OidataEmpty):
             return self._u[self.mask]
         else:
             return self._u
+
     @u.setter
     def u(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="u")
@@ -199,6 +216,7 @@ class Oidata(OidataEmpty):
             return self._v[self.mask]
         else:
             return self._v
+
     @v.setter
     def v(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="v")
@@ -209,6 +227,7 @@ class Oidata(OidataEmpty):
             return self._wl[self.mask]
         else:
             return self._wl
+
     @wl.setter
     def wl(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="wl")
@@ -219,6 +238,7 @@ class Oidata(OidataEmpty):
             return self._wl_d[self.mask]
         else:
             return self._wl_d
+
     @wl_d.setter
     def wl_d(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="wl_d")
@@ -226,6 +246,7 @@ class Oidata(OidataEmpty):
     @property
     def shapedata(self):
         return self.data.shape
+
     @shapedata.setter
     def shapedata(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="shapedata")
@@ -233,6 +254,7 @@ class Oidata(OidataEmpty):
     @property
     def shapeuv(self):
         return self.u.shape
+
     @shapeuv.setter
     def shapeuv(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="shapeuv")
@@ -240,6 +262,7 @@ class Oidata(OidataEmpty):
     @property
     def is_angle(self):
         return self._is_angle
+
     @is_angle.setter
     def is_angle(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="is_angle")
@@ -247,6 +270,7 @@ class Oidata(OidataEmpty):
     @property
     def is_t3(self):
         return self._is_t3
+
     @is_t3.setter
     def is_t3(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="is_t3")
@@ -254,6 +278,7 @@ class Oidata(OidataEmpty):
     @property
     def flat(self):
         return self._flat
+
     @flat.setter
     def flat(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="flat")
@@ -274,10 +299,15 @@ class Oidata(OidataEmpty):
         if not isinstance(data, OidataEmpty):
             return  # trivial, nothing to add
         if not isinstance(data, Oidata):
-            if exc.raiseIt(exc.WrongData, exc.doraise(self, **kwargs), typ='Oidata'):
+            if exc.raiseIt(exc.WrongData,
+                           exc.doraise(self, **kwargs),
+                           typ='Oidata'):
                 return False
         if self.datatype != data.datatype:
-            if exc.raiseIt(exc.IncompatibleData, exc.doraise(self, **kwargs), typ1=self.datatype, typ2=data.datatype):
+            if exc.raiseIt(exc.IncompatibleData,
+                           exc.doraise(self, **kwargs),
+                           typ1=self.datatype,
+                           typ2=data.datatype):
                 return False
         # do we flatten it?
         if flatten or self.shapedata[-1] != data.shapedata[-1]:
@@ -285,26 +315,44 @@ class Oidata(OidataEmpty):
             data.flatten()
         # concatenate data
         for key in core.KEYSDATA + core.KEYSUV:
-            setattr(self, "_"+key, np.concatenate((getattr(self, "_"+key), getattr(data, "_"+key)), axis=0))
+            setattr(self,
+                    "_"+key,
+                    np.concatenate((getattr(self, "_"+key),
+                                    getattr(data, "_"+key)), axis=0))
         # update input keys
         for key in core.INPUTSAVEKEY:
-            setattr(self, "_input_"+key, getattr(self, "_input_"+key) + getattr(data, "_input_"+key))
+            setattr(self,
+                    "_input_"+key,
+                    getattr(self, "_input_"+key)
+                    + getattr(data, "_input_"+key))
         # update the data
         self.update()
 
-    def update(self):
+    def update(self, **kwargs):
         """
-        Given u, v, wl and flag information as object properties, this function updates the Oidata object: the data
-        masking (from the new mask property) and the bl, pa, blwl properties (from u, v and wl properties)
+        Given u, v, wl and flag information as object properties, this
+        function updates the Oidata object: the data masking (from the
+        new mask property) and the bl, pa, blwl properties (from u, v
+        and wl properties)
         """
-        self._u = core.round_fig(self._u, self.significant_figures)
-        self._v = core.round_fig(self._v, self.significant_figures)
-        self._wl = core.round_fig(self._wl, self.significant_figures)
-        self._wl_d = core.round_fig(self._wl_d, self.significant_figures)
+        self._u = core.round_fig(self._u,
+                                 self.significant_figures)
+        self._v = core.round_fig(self._v,
+                                 self.significant_figures)
+        self._wl = core.round_fig(self._wl,
+                                  self.significant_figures)
+        self._wl_d = core.round_fig(self._wl_d,
+                                    self.significant_figures)
+        if (self.error == 0).any():
+            if exc.raiseIt(exc.ZeroErrorbars, exc.doraise(self, **kwargs)):
+                return False
         self._invvar = 1./self.error**2
-        self.bl = core.round_fig(np.hypot(self.v, self.u), self.significant_figures)
-        self.pa = core.round_fig(np.arctan2(self.v, self.u), self.significant_figures)
-        self.blwl = core.round_fig(self.bl/self.wl, self.significant_figures)
+        self.bl = core.round_fig(np.hypot(self.v, self.u),
+                                 self.significant_figures)
+        self.pa = core.round_fig(np.arctan2(self.v, self.u),
+                                 self.significant_figures)
+        self.blwl = core.round_fig(self.bl/self.wl,
+                                   self.significant_figures)
         self._wlmin = self.wl.min()
         self._wlmax = self.wl.max()
         self._wlspan = self._wlmax - self._wlmin

@@ -30,6 +30,7 @@ try:
 except ImportError:
     import pyfits as pf
 
+from .oifits import Oifits
 from . import oiexception as exc
 from . import core
 np = core.np
@@ -127,7 +128,7 @@ class Oigrab(object):
         tgtlist = {}
         formattitle = "\n{} [hdu={}]:\nAcq. Index | Target ID |      \
                         MJD      |  UVs | N wl\n{}"
-        formatline = "{:>10} | {:>9} | {:>13} | {:>4 | {:>4}"
+        formatline = "{:>10} | {:>9} | {:>13} | {:>4} | {:>4}"
         for idx, item in enumerate(hdus):
             # if we have data in this header
             if core.hduToDataType(item) is not None:
@@ -191,11 +192,10 @@ class Oigrab(object):
                 if tgt is not None:
                     filt = (filt & (item.data.field("TARGET_ID") == int(tgt)))
                 if verbose:
-                    print("{}:\n  {:d}/{}\n".format(
+                    print("{}:\n  {}/{}\n".format(
                                 core.hduToDataType(item),
                                 filt.sum(),
-                                item.data["TARGET_ID"].size
-                                                    ))
+                                item.data["TARGET_ID"].size))
                 datayouwant[idx] = np.arange(item.data["TARGET_ID"].size)[filt]
         hdus.close()
         return datayouwant
