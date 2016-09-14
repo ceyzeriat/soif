@@ -110,7 +110,8 @@ ATTRDATATYPE = {'T3AMP': {'is_t3': True,
                            'is_angle': False
                            }
                 }
-DATAKEYSLOWER = ['vis2', 't3phi', 't3amp', 'visphi', 'visamp']
+DATAKEYSLOWER = [item.lower() for item in ATTRDATATYPE.keys()]
+DATAKEYSUPPER = [item.upper() for item in ATTRDATATYPE.keys()]
 
 
 def abs2(ar):

@@ -51,7 +51,7 @@ class Oidata(OidataEmpty):
         hdu = hdus[self._input_hduidx[-1]]
         hduwl = hdus[self._input_hduwlidx[-1]]
 
-        if self.datatype not in core.ATTRDATATYPE.keys():
+        if self.datatype not in core.DATAKEYSUPPER:
             if exc.raiseIt(exc.InvalidDataType,
                            self.raiseError,
                            datatype=self.datatype):

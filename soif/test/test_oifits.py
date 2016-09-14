@@ -30,24 +30,19 @@ import os
 from nose.tools import raises
 
 from ..oidata import Oidata
-from ..oigrab import Oigrab
 from ..oidataempty import OidataEmpty
 from ..oifits import Oifits
+from ..oigrab import Oigrab
 from .. import oiexception as exc
 
-"""FILENAME = os.path.dirname(os.path.abspath(__file__)) + '/MWC361.oifits'
-FILENAME_NOTARGET = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_notarget.oifits'
-FILENAME_NOWL = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_nowl.oifits'
-VALIDHDU = 4
-DATASETSIZE = 12
 
-def test_oigrab():
+
+
+"""def test_extract():
     oig = Oigrab(FILENAME)
-    assert len(oig.targets) == 3
-    assert oig.targets[0] == 'HD_204770'
-    assert str(oig) == repr(oig)
+    ans1 = oig.extract(tgt=VALIDTGT)
+    filt = np.asarray([item[1] for item in oig.show_specs(ret=True)[VALIDHDU]]) == VALIDTGT
+    ans2 = Oifits(oig.src, datafilter={VALIDHDU: np.arange(DATASETSIZE)[filt]+1})
+    assert np.allclose(ans1.vis2.data, ans2.vis2.data)
 
-@raises(exc.NoTargetTable)
-def test_oigrab_NoTargetTable():
-    oig = Oigrab(FILENAME_NOTARGET)
 """

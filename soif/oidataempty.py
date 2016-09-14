@@ -36,7 +36,7 @@ class OidataEmpty(object):
     def __init__(self, datatype, **kwargs):
         self.raiseError = bool(kwargs.pop('raiseError', True))
         self.datatype = str(datatype).upper()
-        if self.datatype not in core.ATTRDATATYPE.keys():
+        if self.datatype not in core.DATAKEYSUPPER:
             if exc.raiseIt(exc.InvalidDataType,
                            self.raiseError,
                            datatype=self.datatype):
@@ -50,8 +50,7 @@ class OidataEmpty(object):
     def __repr__(self):
         return self._info()
 
-    def __str__(self):
-        return self._info()
+    __str__ = __repr__
 
     @property
     def useit(self):

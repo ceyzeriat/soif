@@ -40,6 +40,7 @@ FILENAME_NOTARGET = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MW
 FILENAME_NOWL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MWC361_nowl.oifits')
 FILENAME_FULL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MWC361_full.oifits')
 VALIDHDU = 4
+T3HDU = 6
 DATASETSIZE = 12
 VALIDTGT = 1
 
@@ -53,9 +54,16 @@ def test():
 def test_NoTargetTable():
     oig = Oigrab(FILENAME_NOTARGET)
 
+def test_NoTargetTable_noraise():
+    oig = Oigrab(FILENAME_NOTARGET, raiseError=False)
+    assert not hasattr(oig, '_targets')
+
 @raises(exc.NoWavelengthTable)
 def test_NoWavelengthTable():
     oig = Oigrab(FILENAME_NOWL)
+
+def test_NoWavelengthTable_noraise():
+    oig = Oigrab(FILENAME_NOWL, raiseError=False)
 
 @raises(exc.ReadOnly)
 def test_NoTargetTable():
@@ -64,6 +72,7 @@ def test_NoTargetTable():
 
 def test_show_specs():
     oig = Oigrab(FILENAME)
+    ans = oig.show_specs(ret=False)
     ans = oig.show_specs(ret=True)
     for item in range(10):
         if item != VALIDHDU:
@@ -71,20 +80,23 @@ def test_show_specs():
     assert len(ans[VALIDHDU]) == DATASETSIZE
     assert np.allclose(ans[VALIDHDU][0], (0, 0, 57190.4437, 1, 38))
     assert (np.diff([item[2] for item in ans[VALIDHDU]]) >= 0).all()
-    
 
 def test_show_filtered():
     oig = Oigrab(FILENAME)
     for item in range(10):
         if item != VALIDHDU:
-            assert oig.show_filtered(tgt=VALIDTGT).get(item) is None
+            assert oig.show_filtered(tgt=VALIDTGT, verbose=True).get(item) is None
         else:
-            assert oig.show_filtered(tgt=VALIDTGT).get(item).tolist() == [ 2,  5,  8, 11]
+            assert oig.show_filtered(tgt=VALIDTGT, verbose=True).get(item).tolist() == [ 2,  5,  8, 11]
     oig = Oigrab(FILENAME_FULL)
-
-def test_extract():
-    oig = Oigrab(FILENAME)
-    ans1 = oig.extract(tgt=VALIDTGT)
-    filt = np.asarray([item[1] for item in oig.show_specs(ret=True)[VALIDHDU]]) == VALIDTGT
-    ans2 = Oifits(oig.src, datafilter={VALIDHDU: np.arange(DATASETSIZE)[filt]+1})
-    assert np.allclose(ans1.vis2.data, ans2.vis2.data)
+    ans = oig.show_filtered(tgt=VALIDTGT, verbose=True)
+    assert len(ans) == 5
+    assert len(ans[VALIDHDU]) == 4
+    assert len(ans[T3HDU]) == 140
+    assert len(oig.show_filtered(tgt=VALIDTGT, hdus=(VALIDHDU,T3HDU), verbose=True)) == 3
+    ans = oig.show_filtered(tgt=VALIDTGT, hdus=(T3HDU), t3amp=False, mjd=(55636.3382228, 55636.3396117), verbose=True)
+    assert len(ans) == 2
+    assert ans['data']['T3AMP'] == False
+    assert ans[T3HDU].min() == 70
+    assert ans[T3HDU].max() == 174
+    assert len(ans[T3HDU]) == 70

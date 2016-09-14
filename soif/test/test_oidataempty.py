@@ -30,24 +30,37 @@ import os
 from nose.tools import raises
 
 from ..oidata import Oidata
-from ..oigrab import Oigrab
 from ..oidataempty import OidataEmpty
-from ..oifits import Oifits
 from .. import oiexception as exc
+from .. import core
 
-"""FILENAME = os.path.dirname(os.path.abspath(__file__)) + '/MWC361.oifits'
-FILENAME_NOTARGET = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_notarget.oifits'
-FILENAME_NOWL = os.path.dirname(os.path.abspath(__file__)) + '/MWC361_nowl.oifits'
-VALIDHDU = 4
-DATASETSIZE = 12
 
-def test_oigrab():
-    oig = Oigrab(FILENAME)
-    assert len(oig.targets) == 3
-    assert oig.targets[0] == 'HD_204770'
-    assert str(oig) == repr(oig)
 
-@raises(exc.NoTargetTable)
-def test_oigrab_NoTargetTable():
-    oig = Oigrab(FILENAME_NOTARGET)
-"""
+
+def test_create():
+    for typ in core.DATAKEYSUPPER:
+        oie = OidataEmpty(datatype=typ.lower())
+    assert not oie.useit
+    oie.useit = True
+    assert not oie.useit
+    assert not bool(oie)
+    assert not oie
+    oie._has = True
+    assert oie.useit
+    assert bool(oie)
+    assert oie
+    oie.useit = False
+    assert not oie.useit
+    assert bool(oie)
+    assert oie
+    assert str(oie) == repr(oie)
+
+
+@raises(exc.InvalidDataType)
+def test_InvalidDataType():
+    oie = OidataEmpty(datatype='random')
+
+def test_InvalidDataType_noraise():
+    oie = OidataEmpty(datatype='random', raiseError=False)
+    assert not hasattr(oie, '_has')
+

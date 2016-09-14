@@ -165,27 +165,22 @@ class Oigrab(object):
         if ret:
             return tgtlist
 
-    def show_filtered(self, tgt=None, mjd=(None, None), hduNums=(),
+    def show_filtered(self, tgt=None, mjd=(None, None), hdus=(),
                       vis2=True, t3phi=True, t3amp=True, visphi=True,
                       visamp=True, verbose=False, **kwargs):
         """
-        Given an oifits file 'src' and filtering parameters on the
-        target name (OI_TARGET table), the instrument name
-        (OI_WAVELENGTH table), the array name (OI_ARRAY table),
-        the observation wavelength (OI_WAVELENGTH table) and the
-        acquisition time [t_min, t_max] (OI_VIS2, OI_VIS, OI_T3
-        tables), this function returns the data indices of the data
-        matching all of these different filters. These lists are used
-        to load the data within an Oidata object.
-
-        Leave input parameter to 'None' to discard filtering on that
+        Give filtering parameters on the target name (OI_TARGET table),
+        the observation wavelength (OI_WAVELENGTH table), the
+        acquisition time [mjd_min, mjd_max], or the hdu index.
+        Returns the data indices of the data matching all of these
+        different filters. These lists are used to load the data within
+        an Oidata object.
+        Leave input parameter to 'None' to discard filtering on this
         particular parameter.
-
-        Returns: VIS2, T3, VIS indices as a tuple of 3 lists
         """
-        hdus = pf.open(self.src)
-        mjd = [float(mjd[0] if mjd[0] is not None else -np.inf),
-               float(mjd[1] if mjd[1] is not None else np.inf)]
+        allhdus = pf.open(self.src)
+        mjd = (float(mjd[0] if mjd[0] is not None else -np.inf),
+               float(mjd[1] if mjd[1] is not None else np.inf))
         datayouwant = {'data': {'VIS2': bool(vis2),
                                 'T3PHI': bool(t3phi),
                                 'T3AMP': bool(t3amp),
@@ -193,31 +188,35 @@ class Oigrab(object):
                                 'VISAMP': bool(visamp)
                                 }
                        }
-        hduNums = core.aslist(hduNums)
-        for idx, item in enumerate(hdus):
-            if len(hduNums) > 0 and idx not in hduNums:
+        hdus = core.aslist(hdus)
+        for idx, item in enumerate(allhdus):
+            # do we want this hdu?
+            if len(hdus) > 0 and idx not in hdus:
                     continue
+            # is this hdu actual data?
             if core.hduToDataType(item) is not None:
                 mjditem = core.gethduMJD(item)[1].ravel()
                 filt = ((mjditem >= mjd[0]) & (mjditem <= mjd[1]))
                 if tgt is not None:
                     filt = (filt & (item.data.field("TARGET_ID") == int(tgt)))
                 if verbose:
-                    print("{}:\n  {}/{}\n".format(
+                    print("hdu {:d}: {}:\n  {}/{}\n".format(
+                                idx,
                                 core.hduToDataType(item),
                                 filt.sum(),
                                 item.data["TARGET_ID"].size))
-                datayouwant[idx] = np.arange(item.data["TARGET_ID"].size)[filt]
-        hdus.close()
+                if filt.any():
+                    datayouwant[idx] = np.arange(item.data["TARGET_ID"].size)[filt]
+        allhdus.close()
         return datayouwant
 
-    def extract(self, tgt=None, mjd=(None, None), wl=(None, None), hduNums=(),
+    def extract(self, tgt=None, mjd=(None, None), wl=(None, None), hdus=(),
                 vis2=True, t3phi=True, t3amp=True, visphi=True, visamp=True,
                 flatten=False, degree=True, significant_figures=5,
                 erb_sigma=None, sigma_erb=None, systematic_prior=None,
                 systematic_bounds=None, verbose=False, **kwargs):
         datayouwant = self.show_filtered(
-                        tgt=tgt, mjd=mjd, vis2=vis2, hduNums=hduNums,
+                        tgt=tgt, mjd=mjd, vis2=vis2, hdus=hdus,
                         t3phi=t3phi, t3amp=t3amp, visphi=visphi, visamp=visamp,
                         verbose=verbose, **kwargs)
         return Oifits(src=self.src, datafilter=datayouwant, flatten=flatten,
