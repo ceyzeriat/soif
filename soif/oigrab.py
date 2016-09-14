@@ -165,7 +165,7 @@ class Oigrab(object):
         if ret:
             return tgtlist
 
-    def show_filtered(self, tgt=None, mjd=(None, None), hdus=(),
+    def filtered(self, tgt=None, mjd=(None, None), hdus=(),
                       vis2=True, t3phi=True, t3amp=True, visphi=True,
                       visamp=True, verbose=False, **kwargs):
         """
@@ -215,7 +215,7 @@ class Oigrab(object):
                 flatten=False, degree=True, significant_figures=5,
                 erb_sigma=None, sigma_erb=None, systematic_prior=None,
                 systematic_bounds=None, verbose=False, **kwargs):
-        datayouwant = self.show_filtered(
+        datayouwant = self.filtered(
                         tgt=tgt, mjd=mjd, vis2=vis2, hdus=hdus,
                         t3phi=t3phi, t3amp=t3amp, visphi=visphi, visamp=visamp,
                         verbose=verbose, **kwargs)

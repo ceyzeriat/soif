@@ -36,7 +36,7 @@ from . import oiexception as exc
 from . import core
 np = core.np
 
-__all__ = ['Oidata']
+__all__ = []
 
 
 class Oidata(OidataEmpty):
@@ -51,11 +51,6 @@ class Oidata(OidataEmpty):
         hdu = hdus[self._input_hduidx[-1]]
         hduwl = hdus[self._input_hduwlidx[-1]]
 
-        if self.datatype not in core.DATAKEYSUPPER:
-            if exc.raiseIt(exc.InvalidDataType,
-                           self.raiseError,
-                           datatype=self.datatype):
-                return
         if core.DATAKEYSDATATYPE[self.datatype]['data'] \
            not in core.hduToColNames(hdu):
             if exc.raiseIt(exc.HduDatatypeMismatch,
@@ -133,6 +128,16 @@ class Oidata(OidataEmpty):
                         "_"+key,
                         core.replicate(getattr(self, "_"+key), (None, 3)))
 
+        # check shape sanity - might be raised in case there are several wl
+        # tables in the oifits. This feature is not covered by this library
+        extra_dim = (3,) if self.is_t3 else ()
+        if not self._u.shape == self._data.shape + extra_dim:
+            if exc.raiseIt(exc.shapeIssue,
+                           self.raiseError,
+                           uvshape=self._u.shape[:2],
+                           datashape=self._data.shape):
+                return
+
         # convert to radian if needed
         if self.is_angle and degree:
             self._data = self._data*core.DEG2RAD
@@ -146,12 +151,12 @@ class Oidata(OidataEmpty):
             self.update()
 
     def _info(self):
-        return "{} data, shape: {}, wl: {}{}".format(
+        return u"{} data, shape: {}, wl: {:.2f}{} µm".encode('utf-8').format(
             self.datatype,
             core.maskedshape(self.shapedata,
                              np.logical_not(self.mask).sum()),
-            self._wlmin,
-            " to {:.2f}".format(self._wlmax) if self._wlspan != 0 else "")
+            self._wlmin*1e6,
+            u" to {:.2f}".format(self._wlmax*1e6) if self._wlspan != 0 else "")
 
     @property
     def data(self):
@@ -240,6 +245,39 @@ class Oidata(OidataEmpty):
     @wl_d.setter
     def wl_d(self, value):
         exc.raiseIt(exc.ReadOnly, self.raiseError, attr="wl_d")
+
+    @property
+    def bl(self):
+        if self._use_mask:
+            return self._bl[self.mask]
+        else:
+            return self._bl
+
+    @bl.setter
+    def bl(self, value):
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="bl")
+
+    @property
+    def pa(self):
+        if self._use_mask:
+            return self._pa[self.mask]
+        else:
+            return self._pa
+
+    @pa.setter
+    def pa(self, value):
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="pa")
+
+    @property
+    def blwl(self):
+        if self._use_mask:
+            return self._blwl[self.mask]
+        else:
+            return self._blwl
+
+    @blwl.setter
+    def blwl(self, value):
+        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="blwl")
 
     @property
     def shapedata(self):
@@ -345,12 +383,12 @@ class Oidata(OidataEmpty):
             if exc.raiseIt(exc.ZeroErrorbars, exc.doraise(self, **kwargs)):
                 return False
         self._invvar = 1./self.error**2
-        self.bl = core.round_fig(np.hypot(self.v, self.u),
-                                 self.significant_figures)
-        self.pa = core.round_fig(np.arctan2(self.v, self.u),
-                                 self.significant_figures)
-        self.blwl = core.round_fig(self.bl/self.wl,
-                                   self.significant_figures)
+        self._bl = core.round_fig(np.hypot(self.v, self.u),
+                                  self.significant_figures)
+        self._pa = core.round_fig(np.arctan2(self.v, self.u),
+                                  self.significant_figures)
+        self._blwl = core.round_fig(self.bl/self.wl,
+                                    self.significant_figures)
         self._wlmin = self.wl.min()
         self._wlmax = self.wl.max()
         self._wlspan = self._wlmax - self._wlmin

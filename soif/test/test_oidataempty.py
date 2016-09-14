@@ -34,27 +34,31 @@ from ..oidataempty import OidataEmpty
 from .. import oiexception as exc
 from .. import core
 
-
-
-
 def test_create():
     for typ in core.DATAKEYSUPPER:
         oie = OidataEmpty(datatype=typ.lower())
-    assert not oie.useit
-    oie.useit = True
-    assert not oie.useit
-    assert not bool(oie)
-    assert not oie
-    oie._has = True
-    assert oie.useit
-    assert bool(oie)
-    assert oie
-    oie.useit = False
-    assert not oie.useit
-    assert bool(oie)
-    assert oie
-    assert str(oie) == repr(oie)
+        assert not oie.useit
+        oie.useit = True
+        assert not oie.useit
+        assert not bool(oie)
+        assert not oie
+        oie._has = True
+        assert oie.useit
+        assert bool(oie)
+        assert oie
+        oie.useit = False
+        assert not oie.useit
+        assert bool(oie)
+        assert oie
+        assert str(oie) == repr(oie)
 
+def test_getattr():
+    oie = OidataEmpty(datatype=core.DATAKEYSUPPER[0])
+    assert oie['useit'] == oie.useit
+    assert not oie['useit']
+    oie.useit = True
+    assert oie['useit']
+    assert not oie['useit'] == oie.useit
 
 @raises(exc.InvalidDataType)
 def test_InvalidDataType():

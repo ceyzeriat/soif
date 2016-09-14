@@ -36,7 +36,7 @@ from .oidata import Oidata
 from . import core
 np = core.np
 
-__all__ = []
+__all__ = ['Oifits']
 
 
 class Oifits(object):
