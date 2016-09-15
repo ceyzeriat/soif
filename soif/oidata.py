@@ -157,7 +157,7 @@ class Oidata(OidataEmpty):
                              np.logical_not(self.mask).sum()),
             self._wlmin*1e6,
             u" to {:.2f}".format(self._wlmax*1e6) if self._wlspan != 0 else u""
-            ).encode('utf-8')
+            )
 
     @property
     def data(self):

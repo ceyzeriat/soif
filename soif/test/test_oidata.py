@@ -80,6 +80,9 @@ def test_create():
     assert oid.pa.shape == oid.shapedata
     assert oid.bl.shape == oid.shapedata
     assert oid.blwl.shape == oid.shapedata
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], flatten=True)
+    assert oid.shapedata == (152,)
+
 
 def test_create_T3():
     oig = Oigrab(FILENAME2)
@@ -123,15 +126,25 @@ def test_shapeIssue():
     oig = Oigrab(FILENAME_FULL)
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME_FULL, hduidx=VALIDHDUFAKET3, datatype="T3PHI", hduwlidx=WLHDU, indices=datafilter[VALIDHDUFAKET3])
-    assert oid.shapedata + (3,) == oid.shapeuv
 
+def test_shapeIssue_noraise():
+    oig = Oigrab(FILENAME_FULL)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME_FULL, hduidx=VALIDHDUFAKET3, datatype="T3PHI", hduwlidx=WLHDU, indices=datafilter[VALIDHDUFAKET3], raiseError=False)
 
-"""def test_masking():
+def test_masking():
     oig = Oigrab(FILENAME)
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
 
-def test_oigrab():
+@raises(exc.BadMaskShape)
+def test_BadMaskShape():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
+    oid.mask = np.array([True, False])
+
+"""def test_oigrab():
     oig = Oigrab(FILENAME)
     assert len(oig.targets) == 3
     assert oig.targets[0] == 'HD_204770'
