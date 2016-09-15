@@ -50,6 +50,7 @@ def test_create():
     oig = Oigrab(FILENAME)
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
+    assert oid.flat == False
     assert str(oid) == repr(oid)
     assert oid
     assert bool(oid)
@@ -69,6 +70,7 @@ def test_create():
     assert oid.bl.shape == oid.shapedata
     assert oid.blwl.shape == oid.shapedata
     oid.flatten()
+    assert oid.flat == True
     assert oid.shapedata == (152,)
     assert oid.shapedata == oid.shapeuv
     assert oid.data.shape == oid.shapedata
@@ -132,11 +134,137 @@ def test_shapeIssue_noraise():
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME_FULL, hduidx=VALIDHDUFAKET3, datatype="T3PHI", hduwlidx=WLHDU, indices=datafilter[VALIDHDUFAKET3], raiseError=False)
 
-def test_masking():
+def test_masking(seed=42):
     oig = Oigrab(FILENAME)
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
-    
+    np.random.seed(seed)
+    assert not oid._use_mask
+    oid.mask = np.random.uniform(low=0.5, high=1.5, size=oid.shapedata).astype(int)
+    assert oid._use_mask
+    through = oid.mask.sum()
+    assert oid.shapedata == (through,)
+    assert oid.shapedata == oid.shapeuv
+    assert oid.data.shape == oid.shapedata
+    assert oid.error.shape == oid.shapedata
+    assert oid.wl.shape == oid.shapedata
+    assert oid.wl_d.shape == oid.shapedata
+    assert oid.u.shape == oid.shapedata
+    assert oid.v.shape == oid.shapedata
+    assert oid.pa.shape == oid.shapedata
+    assert oid.bl.shape == oid.shapedata
+    assert oid.blwl.shape == oid.shapedata
+    assert np.allclose(oid._data, oid['data'])
+    assert np.allclose(oid._error, oid['error'])
+    assert np.allclose(oid._wl, oid['wl'])
+    assert np.allclose(oid._wl_d, oid['wl_d'])
+    assert np.allclose(oid._u, oid['u'])
+    assert np.allclose(oid._v, oid['v'])
+    assert np.allclose(oid._pa, oid['pa'])
+    assert np.allclose(oid._bl, oid['bl'])
+    assert np.allclose(oid._blwl, oid['blwl'])
+    assert np.allclose(oid['data'][oid.mask], oid.data)
+    assert np.allclose(oid['error'][oid.mask], oid.error)
+    assert np.allclose(oid['wl'][oid.mask], oid.wl)
+    assert np.allclose(oid['wl_d'][oid.mask], oid.wl_d)
+    assert np.allclose(oid['u'][oid.mask], oid.u)
+    assert np.allclose(oid['v'][oid.mask], oid.v)
+    assert np.allclose(oid['pa'][oid.mask], oid.pa)
+    assert np.allclose(oid['bl'][oid.mask], oid.bl)
+    assert np.allclose(oid['blwl'][oid.mask], oid.blwl)
+    for vv in [True, None]:
+        oid.mask = vv
+        assert not oid._use_mask
+        assert oid.shapedata == (4,38)
+        assert oid.shapedata == oid.shapeuv
+        assert oid.data.shape == oid.shapedata
+        assert oid.error.shape == oid.shapedata
+        assert oid.wl.shape == oid.shapedata
+        assert oid.wl_d.shape == oid.shapedata
+        assert oid.u.shape == oid.shapedata
+        assert oid.v.shape == oid.shapedata
+        assert oid.pa.shape == oid.shapedata
+        assert oid.bl.shape == oid.shapedata
+        assert oid.blwl.shape == oid.shapedata
+    oid.mask = False
+    assert oid._use_mask
+    assert oid.shapedata == (0,)
+    assert oid.shapedata == oid.shapeuv
+    assert oid.data.shape == oid.shapedata
+    assert oid.error.shape == oid.shapedata
+    assert oid.wl.shape == oid.shapedata
+    assert oid.wl_d.shape == oid.shapedata
+    assert oid.u.shape == oid.shapedata
+    assert oid.v.shape == oid.shapedata
+    assert oid.pa.shape == oid.shapedata
+    assert oid.bl.shape == oid.shapedata
+    assert oid.blwl.shape == oid.shapedata
+
+def test_maskingT3(seed=42):
+    oig = Oigrab(FILENAME2)
+    datafilter = oig.filtered(tgt=VALIDTGT, t3amp=False)
+    oid = Oidata(src=FILENAME2, hduidx=VALIDHDUT3, datatype="T3PHI", hduwlidx=WLHDUT3, indices=datafilter[VALIDHDUT3])
+    np.random.seed(seed)
+    assert not oid._use_mask
+    oid.mask = np.random.uniform(low=0.5, high=1.5, size=oid.shapedata).astype(int)
+    assert oid._use_mask
+    through = oid.mask.sum()
+    assert oid.shapedata == (through,)
+    assert oid.shapedata +(3,) == oid.shapeuv
+    assert oid.data.shape == oid.shapedata
+    assert oid.error.shape == oid.shapedata
+    assert oid.wl.shape == oid.shapeuv
+    assert oid.wl_d.shape == oid.shapeuv
+    assert oid.u.shape == oid.shapeuv
+    assert oid.v.shape == oid.shapeuv
+    assert oid.pa.shape == oid.shapeuv
+    assert oid.bl.shape == oid.shapeuv
+    assert oid.blwl.shape == oid.shapeuv
+    assert np.allclose(oid._data, oid['data'])
+    assert np.allclose(oid._error, oid['error'])
+    assert np.allclose(oid._wl, oid['wl'])
+    assert np.allclose(oid._wl_d, oid['wl_d'])
+    assert np.allclose(oid._u, oid['u'])
+    assert np.allclose(oid._v, oid['v'])
+    assert np.allclose(oid._pa, oid['pa'])
+    assert np.allclose(oid._bl, oid['bl'])
+    assert np.allclose(oid._blwl, oid['blwl'])
+    assert np.allclose(oid['data'][oid.mask], oid.data)
+    assert np.allclose(oid['error'][oid.mask], oid.error)
+    assert np.allclose(oid['wl'][oid.mask], oid.wl)
+    assert np.allclose(oid['wl_d'][oid.mask], oid.wl_d)
+    assert np.allclose(oid['u'][oid.mask], oid.u)
+    assert np.allclose(oid['v'][oid.mask], oid.v)
+    assert np.allclose(oid['pa'][oid.mask], oid.pa)
+    assert np.allclose(oid['bl'][oid.mask], oid.bl)
+    assert np.allclose(oid['blwl'][oid.mask], oid.blwl)
+    for vv in [True, None]:
+        oid.mask = vv
+        assert not oid._use_mask
+        assert oid.shapedata == (140,1)
+        assert oid.shapedata +(3,) == oid.shapeuv
+        assert oid.data.shape == oid.shapedata
+        assert oid.error.shape == oid.shapedata
+        assert oid.wl.shape == oid.shapeuv
+        assert oid.wl_d.shape == oid.shapeuv
+        assert oid.u.shape == oid.shapeuv
+        assert oid.v.shape == oid.shapeuv
+        assert oid.pa.shape == oid.shapeuv
+        assert oid.bl.shape == oid.shapeuv
+        assert oid.blwl.shape == oid.shapeuv
+    oid.mask = False
+    assert oid._use_mask
+    assert oid.shapedata == (0,)
+    assert oid.shapedata +(3,) == oid.shapeuv
+    assert oid.data.shape == oid.shapedata
+    assert oid.error.shape == oid.shapedata
+    assert oid.wl.shape == oid.shapeuv
+    assert oid.wl_d.shape == oid.shapeuv
+    assert oid.u.shape == oid.shapeuv
+    assert oid.v.shape == oid.shapeuv
+    assert oid.pa.shape == oid.shapeuv
+    assert oid.bl.shape == oid.shapeuv
+    assert oid.blwl.shape == oid.shapeuv
 
 @raises(exc.BadMaskShape)
 def test_BadMaskShape():
@@ -150,6 +278,7 @@ def test_BadMaskShape_noraise():
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
     oid.mask = np.array([True, False])
+    assert len(oid.mask.shape) == 2
 
 """def test_oigrab():
     oig = Oigrab(FILENAME)
@@ -266,3 +395,15 @@ def test_flat_readonly():
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
     oid.flat = 'random'
+
+@raises(exc.ZeroErrorbars)
+def test_ZeroErrorbars():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU]-1)
+
+def test_ZeroErrorbars_noraise():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU]-1, raiseError=False)
+    assert not hasattr(oid, "_invvar")

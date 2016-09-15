@@ -106,7 +106,7 @@ class Oidata(OidataEmpty):
         for key in core.KEYSWL.keys():
             setattr(self,
                     "_"+key,
-                    core.replicate(getattr(self, "_"+key),
+                    core.replicate(self[key],
                                    (self._datasize, None)))
 
         # combine the UV coordinates of T3
@@ -126,7 +126,7 @@ class Oidata(OidataEmpty):
             for key in core.KEYSWL.keys():
                 setattr(self,
                         "_"+key,
-                        core.replicate(getattr(self, "_"+key), (None, 3)))
+                        core.replicate(self[key], (None, 3)))
 
         # check shape sanity - might be raised in case there are several wl
         # tables in the oifits. This feature is not covered by this library
@@ -151,15 +151,12 @@ class Oidata(OidataEmpty):
             self.update()
 
     def _info(self):
-        return str(u"{} data, shape: {}, wl: {:.2f}{} {}m".format(
+        return str(u"{} data, shape: {}, wl: {:.2f}{} \xb5m".format(
             self.datatype,
             core.maskedshape(self.shapedata,
                              np.logical_not(self.mask).sum()),
             self._wlmin*1e6,
-            u" to {:.2f}".format(self._wlmax*1e6)
-                if self._wlspan != 0
-                else u"",
-            u"\xb5"
+            u" to {:.2f}".format(self._wlmax*1e6) if self._wlspan != 0 else u""
             ).encode('utf-8'))
 
     @property
@@ -326,17 +323,17 @@ class Oidata(OidataEmpty):
     def flatten(self, **kwargs):
         if self.is_t3:
             for key in core.KEYSUV:
-                setattr(self, "_"+key, getattr(self, "_"+key).reshape((-1, 3)))
+                setattr(self, "_"+key, self[key].reshape((-1, 3)))
             for key in core.KEYSDATA:
-                setattr(self, "_"+key, getattr(self, "_"+key).ravel())
+                setattr(self, "_"+key, self[key].ravel())
         else:
             for key in core.KEYSDATA + core.KEYSUV:
-                setattr(self, "_"+key, getattr(self, "_"+key).ravel())
+                setattr(self, "_"+key, self[key].ravel())
         self.update()
         self._flat = True
 
     def _addData(self, data, flatten=True, **kwargs):
-        if not isinstance(data, OidataEmpty):
+        if isinstance(data, OidataEmpty):
             return  # trivial, nothing to add
         if not isinstance(data, Oidata):
             if exc.raiseIt(exc.WrongData,
@@ -357,14 +354,12 @@ class Oidata(OidataEmpty):
         for key in core.KEYSDATA + core.KEYSUV:
             setattr(self,
                     "_"+key,
-                    np.concatenate((getattr(self, "_"+key),
-                                    getattr(data, "_"+key)), axis=0))
+                    np.concatenate((self[key], data[key]), axis=0))
         # update input keys
         for key in core.INPUTSAVEKEY:
             setattr(self,
                     "_input_"+key,
-                    getattr(self, "_input_"+key)
-                    + getattr(data, "_input_"+key))
+                    self["input_"+key] + data["input_"+key])
         # update the data
         self.update()
 
@@ -387,11 +382,11 @@ class Oidata(OidataEmpty):
             if exc.raiseIt(exc.ZeroErrorbars, exc.doraise(self, **kwargs)):
                 return False
         self._invvar = 1./self.error**2
-        self._bl = core.round_fig(np.hypot(self.v, self.u),
+        self._bl = core.round_fig(np.hypot(self['v'], self['u']),
                                   self.significant_figures)
-        self._pa = core.round_fig(np.arctan2(self.v, self.u),
+        self._pa = core.round_fig(np.arctan2(self['v'], self['u']),
                                   self.significant_figures)
-        self._blwl = core.round_fig(self.bl/self.wl,
+        self._blwl = core.round_fig(self['bl']/self['wl'],
                                     self.significant_figures)
         self._wlmin = self.wl.min()
         self._wlmax = self.wl.max()
