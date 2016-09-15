@@ -151,13 +151,16 @@ class Oidata(OidataEmpty):
             self.update()
 
     def _info(self):
-        return u"{} data, shape: {}, wl: {:.2f}{} µm".format(
+        return str(u"{} data, shape: {}, wl: {:.2f}{} {}m".format(
             self.datatype,
             core.maskedshape(self.shapedata,
                              np.logical_not(self.mask).sum()),
             self._wlmin*1e6,
-            u" to {:.2f}".format(self._wlmax*1e6) if self._wlspan != 0 else u""
-            )
+            u" to {:.2f}".format(self._wlmax*1e6)
+                if self._wlspan != 0
+                else u"",
+            u"\xb5"
+            ).encode('utf-8'))
 
     @property
     def data(self):

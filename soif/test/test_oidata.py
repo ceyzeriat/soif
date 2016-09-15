@@ -136,12 +136,19 @@ def test_masking():
     oig = Oigrab(FILENAME)
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
+    
 
 @raises(exc.BadMaskShape)
 def test_BadMaskShape():
     oig = Oigrab(FILENAME)
     datafilter = oig.filtered(tgt=VALIDTGT)
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
+    oid.mask = np.array([True, False])
+
+def test_BadMaskShape_noraise():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
     oid.mask = np.array([True, False])
 
 """def test_oigrab():
