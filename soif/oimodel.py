@@ -87,9 +87,9 @@ class Oimodel(object):
     @property
     def nparams(self):
         if self._hasdata:
-            return self._nparamsObj + int(self.oidata.systematic_fit)
+            return self.nparamsObjs + int(self.oidata.systematic_fit)
         else:
-            return self._nparamsObj
+            return self.nparamsObjs
 
     @nparams.setter
     def nparams(self, value):
@@ -565,8 +565,8 @@ def standardLikelihood(params, model, customlike=None, kwargs={}):
 
     ### !!! hard-coded shit to fit black-body stuff
     #khi_temp = (core.ratio_bb_flux(1.65*1e-6, params[0], params[4], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560
-    khi_temp = (core.ratio_bb_flux(1.65*1e-6, np.random.normal(model._objs[0].temp, 2000), params[3], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560
-    quality += khi_temp*model.oidata.vis2.data.size
+    #khi_temp = (core.ratio_bb_flux(1.65*1e-6, np.random.normal(model._objs[0].temp, 2000), params[3], model._objs[0].diam, model._objs[1].diam) - 1.65)**2*11.111 - 2.40794560
+    #quality += khi_temp*model.oidata.vis2.data.size
 
     if chi2:
         return quality

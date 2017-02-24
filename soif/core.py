@@ -413,15 +413,15 @@ def random_custom_cdf_fct(x, cdf, renorm=False):
 
 def random_custom_cdf(x, cdf, size=None, renorm=False, seed=None):
     """
-    if size is False: returns a function
+    if size is False or None: returns a function
     if size == 1 : returns a float
     if size
     """
     fct = random_custom_cdf_fct(x=x, cdf=cdf, renorm=renorm)
-    if size is None:
+    if size is None or size is False:  # defaut
         return fct
     rnd = gen_generator(seed=seed)
-    if size == 1:  # defaut
+    if size == 1:
         return float(fct(rnd.uniform(size=1)))
     elif np.size(size) == 1:
         return fct(rnd.uniform(size=size))

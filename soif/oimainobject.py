@@ -42,6 +42,8 @@ __all__ = ['Oimainobject']
 
 
 class Oimainobject(object):
+    _keys = []
+
     def __init__(self, name, priors={}, bounds={}, verbose=False, *args, **kwargs):
         super(Oimainobject, self).__init__(*args, **kwargs)
         self.raiseError = bool(kwargs.pop('raiseError', True))
@@ -154,12 +156,9 @@ class Oimainobject(object):
                 ret += "\n  {}{}{}={} in [{}, {}]".format(core.font.orange, item, core.font.normal, getattr(self, item, "."), getattr(self, item+"_bounds")[0], getattr(self, item+"_bounds")[1])
         print(ret)
 
-    @property
-    def keys(self):
-        return self._keys
-    @keys.setter
-    def keys(self, value):
-        exc.raiseIt(exc.ReadOnly, self.raiseError, attr="keys")
+    @classmethod
+    def keys(cls):
+        return getattr(cls, '_keys', [])
 
     def to_radec(self):
         """

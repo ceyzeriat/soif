@@ -1,3 +1,3 @@
 Author:
 
-- `Guillaume Schworer (Obs Meudon) <https://github.com/ceyzeriat>`_
+- `Guillaume Schworer <https://github.com/ceyzeriat>`_

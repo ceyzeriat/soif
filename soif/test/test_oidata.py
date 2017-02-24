@@ -396,6 +396,105 @@ def test_flat_readonly():
     oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU])
     oid.flat = 'random'
 
+
+def test_data_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.data = 'random'
+    assert oid.data is not 'random'
+
+def test_error_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.error = 'random'
+    assert oid.error is not 'random'
+
+def test_u_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.u = 'random'
+    assert oid.u is not 'random'
+
+def test_v_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.v = 'random'
+    assert oid.v is not 'random'
+
+def test_wl_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.wl = 'random'
+    assert oid.wl is not 'random'
+
+def test_wl_d_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.wl_d = 'random'
+    assert oid.wl_d is not 'random'
+
+def test_bl_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.bl = 'random'
+    assert oid.bl is not 'random'
+
+def test_paa_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.pa = 'random'
+    assert oid.pa is not 'random'
+
+def test_blwl_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.blwl = 'random'
+    assert oid.blwl is not 'random'
+
+def test_shapedata_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.shapedata = 'random'
+    assert oid.shapedata is not 'random'
+
+def test_shapeuv_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.shapeuv = 'random'
+    assert oid.shapeuv is not 'random'
+
+def test_is_angle_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.is_angle = 'random'
+    assert oid.is_angle is not 'random'
+
+def test_is_t3_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.is_t3 = 'random'
+    assert oid.is_t3 is not 'random'
+
+def test_flat_readonly():
+    oig = Oigrab(FILENAME)
+    datafilter = oig.filtered(tgt=VALIDTGT)
+    oid = Oidata(src=FILENAME, hduidx=VALIDHDU, datatype="VIS2", hduwlidx=WLHDU, indices=datafilter[VALIDHDU], raiseError=False)
+    oid.flat = 'random'
+    assert oid.flat is not 'random'
+
 @raises(exc.ZeroErrorbars)
 def test_ZeroErrorbars():
     oig = Oigrab(FILENAME)

@@ -43,12 +43,9 @@ class Oifits(object):
     """
     This class opens, reads and sorts data contained in the file
     'src' (oifits format).
-
-    vis2, vis and t3 are lists of which corresponding data indeces to
-    extract from the file.
     """
     def __init__(self, src, datafilter, wl=(None, None), erb_sigma=None,
-                 sigma_erb=None, systematic_prior=None, systematic_bounds=None,
+                 sigma_erb=None, systematic_prior=None, systematic_bounds=(),
                  flatten=False, degree=True, significant_figures=5, **kwargs):
         self.raiseError = bool(kwargs.pop('raiseError', True))
         # initialize empty data
@@ -64,7 +61,7 @@ class Oifits(object):
             if exc.raiseIt(exc.NotCallable, self.raiseError, fct="sigma_erb"):
                 return
         self.systematic_bounds = None \
-            if systematic_bounds is None \
+            if len(systematic_bounds) <= 2  \
             else list(map(float, list(systematic_bounds)[:2]))
         self.systematic_prior = None \
             if systematic_prior is None \
@@ -81,8 +78,7 @@ class Oifits(object):
         txt = "\n".join([" {}".format(getattr(self, key))
                          for key in core.DATAKEYSLOWER
                          if getattr(self, key).useit])
-        if txt == "":
-            txt = " No data"
+        txt = " No data" if txt == "" else txt
         txt = "{}<SOIF Data>{}\n{}".format(core.font.blue,
                                            core.font.normal,
                                            txt)
@@ -278,7 +274,7 @@ class Oifits(object):
         ret = []
         for key in core.DATAKEYSLOWER:
             thedata = getattr(self, key)
-            if thedata._has:
+            if thedata.useit:
                 retdbl = isinstance(viscomp, (tuple, list))
                 if retdbl:
                     viscomp, flx = viscomp
@@ -286,7 +282,7 @@ class Oifits(object):
                     fct = core.FCTVISCOMP[key.upper()]
                     if thedata.is_angle:  # t3phi
                         dum = (fct(viscomp)[thedata._ind]
-                              * thedata._phasesign).sum(-1)
+                               * thedata._phasesign).sum(-1)
                     else:  # t3amp
                         dum = (fct(viscomp[thedata._ind])).prod(-1)
                 else:
